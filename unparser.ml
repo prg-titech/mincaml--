@@ -51,12 +51,11 @@ let rec string_of_ast t =
   | LetRec (fundef, t) ->
     let { name; args; body } = fundef in
     let (id, _) = name in
-    let args' = List.fold_left begin fun acc (id, typ) ->
-        (match typ with
-         | Type.Var (opt) -> (match !opt with
-             | Some (_) -> acc ^ (id ^ " ")
-             | None -> acc ^ "_ ")
-         | _ -> acc ^ (id ^ " "))
+    let args' = List.fold_left begin fun acc (id, _) ->
+        if String.contains id 'T' && String.contains id 'u' then
+          acc ^ ("_" ^ " ")
+        else
+          acc ^ (id ^ " ")
       end "" args in
     Printf.sprintf "let rec %s %s= %s\nin %s" id
       args' (string_of_ast body) (string_of_ast t)
