@@ -95,7 +95,7 @@ let rec print_t = function
   | Var id -> print_string "Var("; print_string id; print_string ")"
   | LetRec (fundef, t) ->
     print_string "LetRec(";
-    print_fundef fundef; print_t t;
+    print_fundef fundef; print_string", ";  print_t t;
     print_string ")"
   | App (t, ts) ->
     print_string "App(";

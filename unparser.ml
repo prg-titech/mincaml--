@@ -1,20 +1,12 @@
 open Syntax
 
-let ast_of_string s =
-  Lexing.from_string s
-  |> Parser.exp Lexer.token
-  |> Syntax.show
-
-let print_ast s =
-  ast_of_string s |> print_endline
-
-let rec string_of_ast t =
+let rec string_of_ast (t : Syntax.t) : string =
   match t with
-  | Unit -> "_"
+  | Unit -> "()"
   | Int (n) -> string_of_int n
   | Bool (b) -> string_of_bool b
   | Float (f) -> string_of_float f
-  | Not (t) -> Printf.sprintf "!%s" (string_of_ast t)
+  | Not (t) -> Printf.sprintf "(not (%s))" (string_of_ast t)
   | Neg (t) -> Printf.sprintf "(- %s)" (string_of_ast t)
   | FNeg (t) -> Printf.sprintf "(-. %s)" (string_of_ast t)
   | Var (x) -> x
@@ -46,8 +38,14 @@ let rec string_of_ast t =
     Printf.sprintf "if %s then %s\nelse %s"
       (string_of_ast t1) (string_of_ast t2) (string_of_ast t3)
   | Let ((id, typ), t1, t2) ->
-    Printf.sprintf "let %s = %s in %s"
-      id (string_of_ast t1) (string_of_ast t2)
+    begin
+      if String.contains id 'T' then
+        Printf.sprintf "let _ = %s in %s"
+          (string_of_ast t1) (string_of_ast t2)
+      else
+        Printf.sprintf "let %s = %s in %s"
+          id (string_of_ast t1) (string_of_ast t2)
+    end
   | LetRec (fundef, t) ->
     let { name; args; body } = fundef in
     let (id, _) = name in
@@ -90,10 +88,4 @@ and string_of_ast_ts = function
   | hd :: [] -> string_of_ast hd
   | hd :: tl -> (string_of_ast hd) ^ ", " ^ (string_of_ast_ts tl)
 
-let unparse_string s =
-  Lexing.from_string s
-  |> Parser.exp Lexer.token
-  |> string_of_ast
-  |> print_endline
-
-let unparse ast = string_of_ast ast |> print_endline
+let unparse (t : Syntax.t) = string_of_ast t |> print_endline
