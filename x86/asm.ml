@@ -1,10 +1,8 @@
-(* 2オペランドではなく3オペランドのx86アセンブリもどき *)
-
 type id_or_imm = V of Id.t | C of int
-type t = (* 命令の列 (caml2html: sparcasm_t) *)
+type t =
   | Ans of exp
   | Let of (Id.t * Type.t) * exp * t
-and exp = (* 一つ一つの命令に対応する式 (caml2html: sparcasm_exp) *)
+and exp =
   | Nop
   | Set of int
   | SetL of Id.l
@@ -26,14 +24,14 @@ and exp = (* 一つ一つの命令に対応する式 (caml2html: sparcasm_exp) *)
   (* virtual instructions *)
   | IfEq of Id.t * id_or_imm * t * t
   | IfLE of Id.t * id_or_imm * t * t
-  | IfGE of Id.t * id_or_imm * t * t (* 左右対称ではないので必要 *)
+  | IfGE of Id.t * id_or_imm * t * t
   | IfFEq of Id.t * Id.t * t * t
   | IfFLE of Id.t * Id.t * t * t
   (* closure address, integer arguments, and float arguments *)
   | CallCls of Id.t * Id.t list * Id.t list
   | CallDir of Id.l * Id.t list * Id.t list
-  | Save of Id.t * Id.t (* レジスタ変数の値をスタック変数へ保存 (caml2html: sparcasm_save) *)
-  | Restore of Id.t (* スタック変数から値を復元 (caml2html: sparcasm_restore) *)
+  | Save of Id.t * Id.t
+  | Restore of Id.t
 type fundef = { name : Id.l; args : Id.t list; fargs : Id.t list; body : t; ret : Type.t }
 (* プログラム全体 = 浮動小数点数テーブル + トップレベル関数 + メインの式 (caml2html: sparcasm_prog) *)
 type prog = Prog of (Id.l * float) list * fundef list * t
@@ -86,3 +84,15 @@ let rec concat e1 xt e2 =
   | Let(yt, exp, e1') -> Let(yt, exp, concat e1' xt e2)
 
 let align i = (if i mod 8 = 0 then i else i + 4)
+
+(* all local variables *)
+let rec localvs_exp = function
+  | IfEq (_, _, e1, e2)
+  | IfLE (_, _, e1, e2)
+  | IfGE (_, _, e1, e2)
+  | IfFEq (_, _, e1, e2)
+  | IfFLE (_, _, e1, e2) -> localvs e1 @ localvs e2
+  | _ -> []
+and localvs = function
+  | Ans(exp) -> localvs_exp exp
+  | Let(xt, exp, e) -> xt :: localvs_exp exp @ localvs e
