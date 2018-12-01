@@ -119,7 +119,7 @@ and gexp oc = function
       "  ))\n";
   | IfGE (x, y, t1, t2) ->
     Printf.fprintf oc
-      "  (if (result i32) (i32.gt_s (%s) (%s))\n"
+      "  (if (result i32) (i32.ge_s (%s) (%s))\n"
       (Printf.sprintf "get_local %s" (local_name x))
       (local_name_or_imm y);
     Printf.fprintf oc
@@ -134,7 +134,7 @@ and gexp oc = function
       "  ))\n";
   | IfLE (x, y, t1, t2) ->
     Printf.fprintf oc
-      "  (if (result i32) (i32.lt_s (%s) (%s))\n"
+      "  (if (result i32) (i32.le_s (%s) (%s))\n"
       (Printf.sprintf "get_local %s" (local_name x))
       (local_name_or_imm y);
     Printf.fprintf oc
@@ -164,7 +164,7 @@ and gexp oc = function
       "  ))\n";
   | IfFLE (x, y, t1, t2) ->
     Printf.fprintf oc
-      "  (if (result f32) (i32.lt_s (%s) (%s))\n"
+      "  (if (result f32) (f32.le_s (%s) (%s))\n"
       (Printf.sprintf "get_local %s" (local_name x))
       (local_name y);
     Printf.fprintf oc
