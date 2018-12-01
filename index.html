@@ -1,0 +1,27 @@
+<html>
+  <input type="file" onChange="loadWasm()">
+  <script>
+    const loadWasm = async () => {
+	const readerEvent = await new Promise(resolve => {
+            const file = document.querySelector('input').files[0];
+            const reader = new FileReader();
+            reader.addEventListener('load', resolve);
+            reader.readAsArrayBuffer(file);
+	});
+	const buffer = readerEvent.target.result;
+
+	var importObject = {
+	    imports: {
+		log: function(arg) {
+		    console.log(arg);
+		    return arg;
+		}
+	    }
+	};
+	window.module = new WebAssembly.Module(buffer);
+	window.instance = new WebAssembly.Instance(module, importObject);
+	const { main } = instance.exports;
+	main();
+    }
+  </script>
+</html>
