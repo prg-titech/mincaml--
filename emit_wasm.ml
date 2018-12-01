@@ -204,7 +204,7 @@ let h oc { name; args; fargs; body = e; ret } =
   (* Declare function signature. *)
   List.iter
     (fun x ->
-       Printf.fprintf oc " (param %s %s) "
+       Printf.fprintf oc " (param %s %s)"
          (local_name x)
          (wat_type Type.Int))
     args;
@@ -235,7 +235,7 @@ let f oc (Prog (ftable, fundefs, main)) =
   Format.eprintf "generating assembly...@.";
   (* start module *)
   Printf.fprintf oc "(module\n";
-  Printf.fprintf oc "  (import \"console\" \"log\" (func $min_caml_print_int (param i32)))\n";
+  Printf.fprintf oc "  (func $min_caml_print_int (import \"imports\" \"log\") (param i32))\n";
   (* main *)
   let mainfun =
     { name = Id.L ("main"); args = []; fargs = []; body = main; ret = Type.Unit }

@@ -32,14 +32,14 @@ let string s = lexbuf stdout (Lexing.from_string s)
 
 let file f =
   let inchan = open_in (f ^ ".ml") in
-  let outchan = if !is_wasm then open_out (f ^ ".wat") else open_out (f ^ ".s") in
-  try
-    if !is_unparse then
-      Lexing.from_channel inchan
-      |> Parser.exp Lexer.token
-      |> Unparser.unparse
+  let outchan =
+    if !is_wasm then
+      open_out (f ^ ".wat")
     else
-      lexbuf outchan (Lexing.from_channel inchan);
+      open_out (f ^ ".s")
+  in
+  try
+    lexbuf outchan (Lexing.from_channel inchan);
     close_in inchan;
     close_out outchan;
   with e -> (close_in inchan; close_out outchan; raise e)
@@ -51,8 +51,6 @@ let () =
       "maximum size of functions inlined");
      ("-iter", Arg.Int(fun i -> limit := i),
       "maximum number of optimizations iterated");
-     ("-unparse", Arg.Unit (fun _ -> is_unparse := true),
-      "unparse your program");
      ("-wasm", Arg.Unit (fun _ -> is_wasm := true),
      "emit webassembly")]
     (fun s -> files := !files @ [s])
