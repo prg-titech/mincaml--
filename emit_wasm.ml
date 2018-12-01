@@ -100,23 +100,18 @@ and gexp oc = function
         Printf.fprintf oc "    i32.sotre align=4\n";
       | C (i) ->
         Printf.fprintf oc "    get_local %s\n" (local_name w);
-        Printf.fprintf oc "    i32.load offset=%d alig=4\n" (i * z);
+        Printf.fprintf oc "    i32.load offset=%d align=4\n" (i * z);
     end
   | IfEq (x, y, t1, t2) ->
-    Printf.fprintf oc
-      "  (if (result i32) (i32.eq (%s) (%s))\n"
+    Printf.fprintf oc "  (if (result i32) (i32.eq (%s) (%s))\n"
       (Printf.sprintf "get_local %s" (local_name x))
       (local_name_or_imm y);
-    Printf.fprintf oc
-      "  (then\n";
+    Printf.fprintf oc "  (then\n";
     g oc t1;
-    Printf.fprintf oc
-      "  )\n";
-    Printf.fprintf oc
-      "  (else\n";
+    Printf.fprintf oc "  )\n";
+    Printf.fprintf oc "  (else\n";
     g oc t2;
-    Printf.fprintf oc
-      "  ))\n";
+    Printf.fprintf oc "  ))\n";
   | IfGE (x, y, t1, t2) ->
     Printf.fprintf oc
       "  (if (result i32) (i32.ge_s (%s) (%s))\n"
@@ -183,6 +178,7 @@ and gexp oc = function
     Printf.fprintf oc "    call %s\n" (func_name f);
   | CallCls (f, args, fargs) ->
     Printf.fprintf oc "    TODO  ;; CallCls is not implemented"
+  | Comment _ -> ()
   | _ -> raise (Error "unimplemented instruction")
 
 
