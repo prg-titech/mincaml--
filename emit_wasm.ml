@@ -87,9 +87,9 @@ and gexp oc = function
         Printf.fprintf oc "    get_local %s\n" (local_name x);
         Printf.fprintf oc "    i32.const %d\n" z;
         Printf.fprintf oc "    i32.mul\n";
-        Printf.fprintf oc "    i32.load align=4\n";
+        Printf.fprintf oc "    i32.load\n";
       | C (i) ->
-        Printf.fprintf oc "    i32.load offset=%d alig=4\n" (i * z);
+        Printf.fprintf oc "    i32.load offset=%d\n" (i * z);
     end
   | St (w, x, y, z) ->
     Printf.fprintf oc "    get_local %s\n" (local_name x);
@@ -100,10 +100,10 @@ and gexp oc = function
         Printf.fprintf oc "    i32.const %d\n" z;
         Printf.fprintf oc "    i32.mul\n";
         Printf.fprintf oc "    get_local %s\n" (local_name w);
-        Printf.fprintf oc "    i32.sotre align=4\n";
+        Printf.fprintf oc "    i32.store\n";
       | C (i) ->
         Printf.fprintf oc "    get_local %s\n" (local_name w);
-        Printf.fprintf oc "    i32.load offset=%d align=4\n" (i * z);
+        Printf.fprintf oc "    i32.store offset=%d\n" (i * z);
     end
   | IfEq (x, y, t1, t2) ->
     Printf.fprintf oc "  (if (result i32) (i32.eq (%s) (%s))\n"
@@ -227,6 +227,7 @@ let h oc { name; args; fargs; body = e; ret } =
   (* Body of function. *)
   Printf.fprintf oc "\n";
   g oc e;
+  Printf.fprintf oc "    return\n";
   Printf.fprintf oc ")\n"
 
 
@@ -234,7 +235,10 @@ let f oc (Prog (ftable, fundefs, main)) =
   Format.eprintf "generating assembly...@.";
   (* start module *)
   Printf.fprintf oc "(module\n";
-  Printf.fprintf oc "  (func $min_caml_print_int (import \"imports\" \"log\") (param i32))\n";
+  Printf.fprintf oc
+    "  (func $min_caml_print_int (import \"imports\" \"log\") (param i32) (result i32))\n";
+  Printf.fprintf oc
+    "  (func $min_caml_print_newline (import \"imports\" \"newline\") (param i32) (result i32))\n";
   (* main *)
   let mainfun =
     { name = Id.L ("main"); args = []; fargs = []; body = main; ret = Type.Unit }
