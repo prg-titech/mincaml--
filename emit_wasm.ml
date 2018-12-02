@@ -41,7 +41,8 @@ let func_sig oc = function
 
 let rec g oc = function
   | Ans (e) ->
-    gexp oc e
+    gexp oc e;
+    Printf.fprintf oc "  return\n";
   | Let ((x, t), e, n) ->
     (* Calculation of `e` should leave a variable when t is not unit. *)
       gexp oc e;
@@ -227,7 +228,6 @@ let h oc { name; args; fargs; body = e; ret } =
   (* Body of function. *)
   Printf.fprintf oc "\n";
   g oc e;
-  Printf.fprintf oc "    return\n";
   Printf.fprintf oc ")\n"
 
 
