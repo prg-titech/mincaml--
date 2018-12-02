@@ -2,6 +2,9 @@ open Asm
 
 exception Error of string
 
+let global_hp = "@hp"
+let global_cp = "@cp"
+
 (* super-tenuki global variables *)
 (* let fentries = ref [] *)
 
@@ -236,6 +239,49 @@ let f oc (Prog (ftable, fundefs, main)) =
   let mainfun =
     { name = Id.L ("main"); args = []; fargs = []; body = main; ret = Type.Unit }
   in
+  Printf.fprintf oc "%s\n"
+      (String.concat "\n" [
+        "  (func $min_caml_create_array (param $num i32) (param $value i32) (result i32)";
+        "    (local $i i32) (local $res i32)";
+        Printf.sprintf "    get_global %s" (local_name global_hp);
+        "    set_local $res";
+        "    i32.const 0";
+        "    set_local $i";
+        "    get_local $num";
+        "    i32.const 2";
+        "    i32.shl";
+        "    set_local $num";
+        "    loop $loop";
+        "      get_local $i";
+        "      get_local $num";
+        "      i32.lt_u";
+        "      if";
+        Printf.sprintf "        get_global %s" (local_name global_hp);
+        "        get_local $i";
+        "        i32.add";
+        "        get_local $value";
+        "        i32.store offset=0 align=4";
+        "        get_local $i";
+        "        i32.const 4";
+        "        i32.add";
+        "        set_local $i";
+        "        br $loop";
+        "      end";
+        "    end";
+        Printf.sprintf "    get_global %s" (local_name global_hp);
+        "    get_local $num";
+        "    i32.add";
+        Printf.sprintf "    set_global %s" (local_name global_hp);
+        "    get_local $res)";
+      ]);
   List.iter (h oc) (fundefs @ [mainfun]);
+  (* Require 192KiB of memory. *)
+  Printf.fprintf oc "  (memory %d)\n" 3;
+  (* Declare global variables. *)
+  Printf.fprintf oc "  (global %s (mut i32) i32.const 0)\n"
+    (local_name global_hp);
+  Printf.fprintf oc "  (global %s (mut i32) i32.const 0)\n"
+    (local_name global_cp);
+  (* Declare start function. *)
   (* end module *)
   Printf.fprintf oc ")";
