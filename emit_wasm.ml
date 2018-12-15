@@ -287,5 +287,6 @@ let f oc (Prog (ftable, fundefs, main)) =
   Printf.fprintf oc "  (global %s (mut i32) i32.const 0)\n"
     (local_name global_cp);
   (* Declare start function. *)
+  Printf.fprintf oc "  (start $main)\n";
   (* end module *)
   Printf.fprintf oc ")";
