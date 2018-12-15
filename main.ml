@@ -1,4 +1,12 @@
 open MinCaml
+
+type backend =
+  | MinCaml
+  | Wasm
+  | BacCaml
+
+let backend_type = ref MinCaml
+
 let limit = ref 1000
 let is_unparse = ref false
 let is_wasm = ref false
@@ -22,11 +30,10 @@ let lexbuf oc l =
   |> Virtual.f
   |> Simm.f
   |> fun p ->
-    (if !is_wasm then
-      Emit_wasm.f oc p
-     else
-       RegAlloc.f p
-       |> Emit.f oc)
+    (match !backend_type with
+      | Wasm -> Emit_wasm.f oc p
+      | MinCaml -> RegAlloc.f p |> Emit.f oc
+      | _ -> failwith "Unimplemented backend.")
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
@@ -51,7 +58,7 @@ let () =
       "maximum size of functions inlined");
      ("-iter", Arg.Int(fun i -> limit := i),
       "maximum number of optimizations iterated");
-     ("-wasm", Arg.Unit (fun _ -> is_wasm := true),
+     ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm),
      "emit webassembly")]
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
