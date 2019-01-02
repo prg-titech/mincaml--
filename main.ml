@@ -9,7 +9,6 @@ let backend_type = ref MinCaml
 
 let limit = ref 1000
 let is_unparse = ref false
-let is_wasm = ref false
 
 let rec iter n e =
   Format.eprintf "iteration %d@." n;
@@ -39,11 +38,10 @@ let string s = lexbuf stdout (Lexing.from_string s)
 
 let file f =
   let inchan = open_in (f ^ ".ml") in
-  let outchan =
-    if !is_wasm then
-      open_out (f ^ ".wat")
-    else
-      open_out (f ^ ".s")
+  let outchan = match !backend_type with
+    | Wasm -> open_out (f ^ ".wat")
+    | MinCaml -> open_out (f ^ ".s")
+    | _ -> assert false
   in
   try
     lexbuf outchan (Lexing.from_channel inchan);
@@ -59,7 +57,7 @@ let () =
      ("-iter", Arg.Int(fun i -> limit := i),
       "maximum number of optimizations iterated");
      ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm),
-     "emit webassembly")]
+      "emit webassembly")]
     (fun s -> files := !files @ [s])
     ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n" ^
      Printf.sprintf "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..." Sys.argv.(0));
