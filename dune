@@ -8,7 +8,7 @@
  (flags (-w -4-33-40-41))
  (libraries str)
  (c_names float)
- (preprocess (pps ppx_deriving.show)))
+ )
 
 (executable
  (name main)
