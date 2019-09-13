@@ -1,4 +1,5 @@
 .merlin
+min-caml.install
 
 /asm.ml
 /asm.mli
