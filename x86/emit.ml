@@ -281,23 +281,6 @@ let h oc {name= Id.L x; args= _; fargs= _; body= e; ret= _} =
   stackmap := [] ;
   g oc (Tail, e)
 
-let h_cinterop oc ({name= Id.L x; args; fargs= _; body= e; ret= _} as fundef) =
-  let cname = Filename.chop_extension x in
-  Printf.fprintf oc ".globl _%s\n" cname;
-  Printf.fprintf oc "_%s:\n" cname;
-  Printf.fprintf oc "\tpushl\t%%ebp\n";
-  Printf.fprintf oc "\tmovl\t%%esp, %%ebp\n";
-  let regs = ["%eax"; "%ebx"; "%ecx"; "%edx"] in
-  List.iteri
-    (fun i _ ->
-      Printf.fprintf oc "\tmovl\t%d(%%ebp), %s\n" ((i + 1) * 4 + 4) (List.nth regs (List.length args - (i + 1)))
-      )
-    args;
-  Printf.fprintf oc "\tcall\t%s\n" x;
-  Printf.fprintf oc "\tpopl\t%%ebp\n";
-  Printf.fprintf oc "\tret\n";
-  h oc fundef
-
 let f oc (Prog (data, fundefs, e)) =
   Format.eprintf "generating assembly...@." ;
   Printf.fprintf oc ".data\n" ;
@@ -309,7 +292,7 @@ let f oc (Prog (data, fundefs, e)) =
       Printf.fprintf oc "\t.long\t0x%lx\n" (getlo d) )
     data ;
   Printf.fprintf oc ".text\n" ;
-  List.iter (fun fundef -> h_cinterop oc fundef) fundefs ;
+  List.iter (fun fundef -> h oc fundef) fundefs ;
   Printf.fprintf oc ".globl\tmin_caml_start\n" ;
   Printf.fprintf oc "min_caml_start:\n" ;
   Printf.fprintf oc ".globl\t_min_caml_start\n" ;

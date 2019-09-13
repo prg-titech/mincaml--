@@ -89,3 +89,7 @@ and string_of_ast_ts = function
   | hd :: tl -> (string_of_ast hd) ^ ", " ^ (string_of_ast_ts tl)
 
 let unparse (t : Syntax.t) = string_of_ast t |> print_endline
+
+let parse_from_string s =
+  Lexing.from_string s
+  |> Parser.exp Lexer.token
