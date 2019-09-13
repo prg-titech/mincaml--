@@ -78,6 +78,14 @@ rule token = parse
     { LESS_MINUS }
 | ';'
     { SEMICOLON }
+| ";;"
+    { SEMISEMI }
+| '['
+    { LBRAC }
+| ']'
+    { RBRAC }
+| '|'
+    { VBAR }
 | eof
     { EOF }
 | lower (digit|lower|upper|'_')* (* 他の「予約語」より後でないといけない *)

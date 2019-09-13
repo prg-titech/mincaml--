@@ -33,8 +33,12 @@ let addtyp x = (x, Type.gentyp ())
 %token DOT
 %token LESS_MINUS
 %token SEMICOLON
+%token SEMISEMI
 %token LPAREN
 %token RPAREN
+%token LBRAC
+%token RBRAC
+%token VBAR
 %token EOF
 
 /* (* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) *) */
@@ -118,6 +122,9 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
 | LET IDENT EQUAL exp IN exp
     %prec prec_let
     { Let(addtyp $2, $4, $6) }
+| LET REC fundef SEMISEMI exp
+    %prec prec_let
+    { LetRec($3, $5) }
 | LET REC fundef IN exp
     %prec prec_let
     { LetRec($3, $5) }
@@ -135,7 +142,25 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     { Let((Id.gentmp Type.Unit, Type.Unit), $1, $3) }
 | ARRAY_CREATE simple_exp simple_exp
     %prec prec_app
-    { Array($2, $3) }
+       { Array($2, $3) }
+| LET IDENT EQUAL lst IN exp
+    {
+      match $4 with
+      | List (x) ->
+         let create_array lst =
+           let rec loop i = function
+             | [] -> $6
+             | hd :: tl ->
+                Let ( (Id.gentmp Type.Unit, Type.Unit)
+                    , Put (Var $2, Int i, hd)
+                    , loop (i + 1) tl)
+           in loop 0 lst
+         in
+         Let (addtyp $2
+             , Array (Int (List.length x), Int (0))
+             , create_array x)
+      | _ -> failwith "list should be come here."
+    }
 | error
     { failwith
         (Printf.sprintf "parse error near characters %d-%d"
@@ -171,3 +196,11 @@ pat:
     { $1 @ [addtyp $3] }
 | IDENT COMMA IDENT
     { [addtyp $1; addtyp $3] }
+
+lstcont:
+| { [] }
+| simple_exp { [$1] }
+| simple_exp SEMICOLON lstcont { $1 :: $3 }
+
+lst:
+| LBRAC VBAR lstcont VBAR RBRAC { List $3 }

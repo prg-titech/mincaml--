@@ -24,6 +24,7 @@ type t = (* MinCamlの構文を表現するデータ型 (caml2html: syntax_t) *)
   | Array of t * t
   | Get of t * t
   | Put of t * t * t
+  | List of t list
 [@@deriving show]
 and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
 [@@deriving show]
@@ -132,6 +133,7 @@ let rec print_t = function
     print_t t1; print_string ", ";
     print_t t2; print_string ", ";
     print_t t3; print_string ")";
+  | _ -> assert false
 
 and print_fundef ({ name; args; body }) =
   let (id, typ) = name in
