@@ -1,8 +1,12 @@
 open MinCaml
 
-type backend = MinCaml | Wasm | BacCaml
+type backend = MinCaml | Wasm
+
+type debug = True | False
 
 let backend_type = ref MinCaml
+
+let debug = ref False
 
 let limit = ref 1000
 
@@ -15,11 +19,22 @@ let rec iter n e =
     let e' = Elim.f (ConstFold.f (Inline.f (Assoc.f (Beta.f e)))) in
     if e = e' then e else iter (n - 1) e'
 
+let ast oc l =
+  Id.counter := 0;
+  Parser.exp Lexer.token l
+  |> Syntax.print_t
+
 let lexbuf oc l =
   Id.counter := 0 ;
   Typing.extenv := M.empty ;
-  Parser.exp Lexer.token l |> Typing.f |> KNormal.f |> Alpha.f |> iter !limit
-  |> Closure.f |> Virtual.f |> Simm.f
+  Parser.exp Lexer.token l
+  |> Typing.f
+  |> KNormal.f
+  |> Alpha.f
+  |> iter !limit
+  |> Closure.f
+  |> Virtual.f
+  |> Simm.f
   |> fun p ->
   match !backend_type with
   | Wasm -> Emit_wasm.f oc p
@@ -37,9 +52,11 @@ let file f =
     | _ -> assert false
   in
   try
-    lexbuf outchan (Lexing.from_channel inchan) ;
-    close_in inchan ;
-    close_out outchan
+    match !debug with
+    | True -> ast stdout (Lexing.from_channel inchan)
+    | False -> lexbuf outchan (Lexing.from_channel inchan) ;
+      close_in inchan ;
+      close_out outchan
   with e -> close_in inchan ; close_out outchan ; raise e
 
 let () =
@@ -52,6 +69,7 @@ let () =
       , Arg.Int (fun i -> limit := i)
       , "maximum number of optimizations iterated" )
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
+    ; ("-debug", Arg.Unit (fun _ -> debug := True), "enable debug mode")
     ]
     (fun s -> files := !files @ [s])
     ( "Mitou Min-Caml Compiler (C) Eijiro Sumii\n"
