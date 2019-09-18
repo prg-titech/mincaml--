@@ -8,11 +8,14 @@ extern void min_caml_start(char *, char *);
    portability (under SPARC emulators, for example).  Thanks to Steven
    Shaw for reporting the problem and proposing this solution. */
 FILE *min_caml_stderr;
+FILE *min_caml_stdout;
 
 int main() {
   char *hp, *sp;
 
   min_caml_stderr = stderr;
+  min_caml_stdout = stdout;
+
   sp = alloca(1000000); hp = malloc(4000000);
   if (hp == NULL || sp == NULL) {
     fprintf(stderr, "malloc or alloca failed\n");

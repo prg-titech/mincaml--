@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+ln -sf x64/{*.ml{,i},libmincaml.S} .
+cd shootout; ln -sf x64/Makefile .; cd ..
+cd bytemark; ln -sf x64/Makefile .; cd ..
+cd min-rt; ln -sf x64/globals.s .; cd ..
