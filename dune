@@ -7,8 +7,7 @@
  (modules (:standard \ main anchor))
  (flags (-w -4-33-40-41))
  (libraries str)
- (c_names float)
- )
+ (c_names float))
 
 (executable
  (name main)
