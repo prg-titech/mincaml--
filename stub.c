@@ -2,10 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "gc.h"
-
-#define malloc(n) GC_malloc(n)
-#define calloc(m,n) GC_malloc((m)*(n))
 
 extern void min_caml_start(char *, char *);
 extern int min_caml_get_current_micros();
@@ -25,8 +21,6 @@ int min_caml_get_current_micros() {
 
 int main(int argc, char *argv[]) {
   char *hp, *sp;
-
-  GC_init();
 
   min_caml_stderr = stderr;
   min_caml_stdout = stdout;
