@@ -124,6 +124,49 @@ let rec g env e = (* ·¿¿äÏÀ¥ë¡¼¥Á¥ó (caml2html: typing_g) *)
         extenv := M.add x t !extenv;
         t
     | LetRec({ name = (x, t); args = yts; body = e1 }, e2) -> (* let rec¤Î·¿¿äÏÀ (caml2html: typing_letrec) *)
+      (* HM's hack to declare casting function.  When the function
+          name starts with "cast_" it does not type check the body but
+          assigns the type specified by the function name.
+
+        For example, "let rec cast_fIF x = x" will be typed int ->
+          float.  As it is an identity function, it will serve as a
+          casting function (for architectures that use the same
+          registers for integers and floatings). *)
+
+       (* if the name of the function (x) begins with "cast_" *)
+      if (String.length x) > 5 && (String.sub x 0 5) = "cast_" then
+
+        (* auxiliary function that converts a string to a list of chars *)
+        (let to_seq str =
+           let rec loop idx seq =
+             if idx < 0 then seq
+             else loop (idx-1) ((String.get str idx)::seq) in
+           loop (String.length str - 1) [] in
+
+         (* take out the type specification part of the function name *)
+         let typespec = (to_seq (String.sub x 5 (String.length x - 5))) in
+
+         Format.eprintf "letrec with cast name %s \n" x;
+
+         (* convert a type spec to a type value *)
+         let rec parse_type spec =
+           match spec with
+           | 'I'::r -> (Type.Int,r)
+           | 'F'::r -> (Type.Float,r)
+           | 'B'::r -> (Type.Bool,r)
+           | 'U'::r -> (Type.Unit,r)
+           | 'A'::r -> let (element_type,r) = parse_type r in
+             (Type.Array(element_type),r)
+           | 'f'::r -> let (domain,r) = parse_type r in
+             let (range,r)  = parse_type r in
+             (Type.Fun([domain],range),r)
+         in
+         let casted_type,r = parse_type typespec in
+         let env = M.add x t env in
+         unify t casted_type;  (* let t have type as specified,
+                                  without seeing the body *)
+         g env e2)
+      else
         let env = M.add x t env in
         unify t (Type.Fun(List.map snd yts, g (M.add_list yts env) e1));
         g env e2
