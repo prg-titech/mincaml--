@@ -103,7 +103,7 @@ and compile_exp env =
   | St (x, y, z, _) ->
     [DUP; Literal (lookup env x)] @
     [DUP; Literal (lookup (shift_env env) y)] @
-    (compile_id_or_imm (shift_env env) z) @
+    (compile_id_or_imm (shift_env (shift_env env)) z) @
     [PUT]
   | exp ->
     failwith (Printf.sprintf "un matched pattern: %s" (Asm.show_exp exp))
