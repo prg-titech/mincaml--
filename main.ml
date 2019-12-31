@@ -94,10 +94,13 @@ let () =
     ; ( "-ast"
       , Arg.Unit (fun _ -> ast_dump := True)
       , "emit abstract syntax tree")
+    ; ("-virtual"
+      , Arg.Unit (fun _ -> backend_type := VirtualDump)
+      , "emit virtual machine code")
     ; ("-debug"
       , Arg.Unit (fun _ -> debug := True)
       , "enable debug mode")
-    ; ( "-bc"
+    ; ( "-bc-dump"
       , Arg.Unit (fun _ -> backend_type := BacCamlDump)
       , "emit bytecode instrunctions for baccaml")
     ; ( "-bc-interp"
