@@ -3,7 +3,6 @@ type inst =
   | ADD
   | SUB
   | MUL
-  | NEG
   | NOT
   | LT
   | EQ
@@ -18,40 +17,49 @@ type inst =
   | GET
   | PUT
   | ARRAY_MAKE
-  | FRAME_RESET
+  | FRAME_RESET (* o l n *)
   | PRINT_INT
   | PRINT_NEWLINE
   | METHOD_ENTRY
+  | CONST0
+  | DUP0
   | Literal of int
   | Lref of string
   | Ldef of string
 [@@deriving show]
 
 let insts = [|
-  UNIT;
-  ADD;
-  SUB;
-  MUL;
-  NEG;
-  NOT;
-  LT;
-  EQ;
-  JUMP_IF_ZERO;
-  JUMP;
-  CALL;
-  RET;
-  HALT;
-  DUP;
-  POP1;
-  CONST;
-  GET;
-  PUT;
-  ARRAY_MAKE;
-  FRAME_RESET;
-  PRINT_INT;
-  PRINT_NEWLINE;
-  METHOD_ENTRY
-|]
+   UNIT
+  ; ADD
+  ; SUB
+  ; MUL
+  ; NOT
+  ; LT
+  ; EQ
+  ; JUMP_IF_ZERO
+  ; JUMP
+  ; CALL
+  ; RET
+  ; HALT
+  ; DUP
+  ; POP1
+  ; CONST
+  ; GET
+  ; PUT
+  ; ARRAY_MAKE
+  ; FRAME_RESET (* o l n *)
+  ; PRINT_INT
+  ; PRINT_NEWLINE
+  ; METHOD_ENTRY
+  ; CONST0
+  ; DUP0
+  |]
+
+let pp_inst_map () =
+  ignore (
+    Array.fold_left (fun i instr ->
+      Printf.printf "%s => %d\n" (show_inst instr) i;
+      i+1) 0 insts)
 
 let pp_insts_counter = ref 0
 let pp_pc () =
