@@ -65,6 +65,10 @@ and compile_exp env =
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
     [SUB]
+  | Mul (x, y) ->
+    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm (shift_env env) y) @
+    [MUL]
   | IfLE (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
     [DUP; Literal (lookup env x)] @

@@ -1,6 +1,6 @@
 let rec loop3 i k j a b c =
   if k < 0 then 1 else (
-    let x = a.(i).(k) + b.(k).(j) in
+    let x = a.(i).(k) * b.(k).(j) in
     c.(i).(j) <- c.(i).(j) + x;
    loop3 i (k - 1) j a b c) in
 let rec loop2 i m j a b c =

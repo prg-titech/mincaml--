@@ -14,7 +14,7 @@ rule token = parse
 | space+
     { token lexbuf }
 | "(*"
-    { comment lexbuf; (* ネストしたコメントのためのトリック *)
+    { comment lexbuf;
       token lexbuf }
 | '('
     { LPAREN }
@@ -26,14 +26,16 @@ rule token = parse
     { BOOL(false) }
 | "not"
     { NOT }
-| digit+ (* 整数を字句解析するルール (caml2html: lexer_int) *)
+| digit+
     { INT(int_of_string (Lexing.lexeme lexbuf)) }
 | digit+ ('.' digit*)? (['e' 'E'] ['+' '-']? digit+)?
     { FLOAT(float_of_string (Lexing.lexeme lexbuf)) }
-| '-' (* -.より後回しにしなくても良い? 最長一致? *)
+| '-'
     { MINUS }
-| '+' (* +.より後回しにしなくても良い? 最長一致? *)
+| '+'
     { PLUS }
+| '*'
+    { AST }
 | "-."
     { MINUS_DOT }
 | "+."
