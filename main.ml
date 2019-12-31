@@ -1,16 +1,23 @@
 open MinCaml
 
-type backend = MinCaml | Wasm
+type backend =
+  | MinCaml
+  | Wasm
+  | VirtualDump
+  | BacCamlDump
+  | BacCamlInterp
 
 type debug = True | False
+
+type ast_dump = True | False
 
 let backend_type = ref MinCaml
 
 let debug = ref False
 
-let limit = ref 1000
+let ast_dump = ref False
 
-let is_unparse = ref false
+let limit = ref 1000
 
 let rec iter n e =
   Format.eprintf "iteration %d@." n ;
@@ -22,7 +29,8 @@ let rec iter n e =
 let ast oc l =
   Id.counter := 0;
   Parser.exp Lexer.token l
-  |> Syntax.print_t
+  |> Syntax.show
+  |> print_endline
 
 let lexbuf oc l =
   Id.counter := 0 ;
@@ -36,27 +44,42 @@ let lexbuf oc l =
   |> Virtual.f
   |> Simm.f
   |> fun p ->
-  match !backend_type with
-  | Wasm -> Emit_wasm.f oc p
-  | MinCaml -> RegAlloc.f p |> Emit.f oc
-  | _ -> failwith "Unimplemented backend."
+  begin
+    match !backend_type with
+    | Wasm -> Emit_wasm.f oc p
+    | MinCaml -> RegAlloc.f p |> Emit.f oc
+    | VirtualDump -> Asm.show_prog p |> Printf.fprintf oc "%s"
+    | BacCamlDump ->
+      let open BacCaml in
+      Emit.(
+        f p |> Array.to_list |> Insts.pp_insts |> ignore)
+    | BacCamlInterp ->
+      let open BacCaml in
+      ignore (VM.run_asm (Emit.f p))
+  end
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
-let file f =
+let main f =
   let inchan = open_in (f ^ ".ml") in
   let outchan =
     match !backend_type with
     | Wasm -> open_out (f ^ ".wat")
     | MinCaml -> open_out (f ^ ".s")
-    | _ -> assert false
+    | _ -> stdout
   in
+  (match !debug with
+   | True -> BacCaml.VM.debug_flg := true;
+   | False -> ());
   try
-    match !debug with
-    | True -> ast stdout (Lexing.from_channel inchan)
-    | False -> lexbuf outchan (Lexing.from_channel inchan) ;
-      close_in inchan ;
-      close_out outchan
+    let input = Lexing.from_channel inchan in
+    match !ast_dump with
+    | True -> ast outchan input
+    | False -> begin
+        lexbuf outchan input ;
+        close_in inchan ;
+        close_out outchan
+      end
   with e -> close_in inchan ; close_out outchan ; raise e
 
 let () =
@@ -68,8 +91,19 @@ let () =
     ; ( "-iter"
       , Arg.Int (fun i -> limit := i)
       , "maximum number of optimizations iterated" )
+    ; ( "-ast"
+      , Arg.Unit (fun _ -> ast_dump := True)
+      , "emit abstract syntax tree")
+    ; ("-debug"
+      , Arg.Unit (fun _ -> debug := True)
+      , "enable debug mode")
+    ; ( "-bc"
+      , Arg.Unit (fun _ -> backend_type := BacCamlDump)
+      , "emit bytecode instrunctions for baccaml")
+    ; ( "-bc-interp"
+      , Arg.Unit (fun _ -> backend_type := BacCamlInterp)
+      , "run bytecode instrunctions")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
-    ; ("-debug", Arg.Unit (fun _ -> debug := True), "enable debug mode")
     ]
     (fun s -> files := !files @ [s])
     ( "Mitou Min-Caml Compiler (C) Eijiro Sumii\n"
@@ -77,5 +111,5 @@ let () =
         "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..."
         Sys.argv.(0) ) ;
   List.iter
-    (fun f -> file (Filename.remove_extension f))
+    (fun f -> main (Filename.remove_extension f))
     !files

@@ -7,6 +7,7 @@
  (modules (:standard \ main anchor))
  (flags (-w -4-33-40-41))
  (libraries str)
+ (preprocess (pps ppx_deriving.show))
  (c_names float))
 
 (executable
@@ -14,4 +15,4 @@
  (public_name min-caml)
  (flags (-w -4-33-40-41))
  (modules Main)
- (libraries MinCaml))
+ (libraries MinCaml BacCaml))
