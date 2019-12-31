@@ -1,12 +1,21 @@
 open MinCaml
 
-type backend = MinCaml | Wasm | VirtualDump | BC
+type backend =
+  | MinCaml
+  | Wasm
+  | VirtualDump
+  | BacCamlDump
+  | BacCamlInterp
 
-type debug = Ast | False
+type debug = True | False
+
+type ast_dump = True | False
 
 let backend_type = ref MinCaml
 
 let debug = ref False
+
+let ast_dump = ref False
 
 let limit = ref 1000
 
@@ -40,31 +49,37 @@ let lexbuf oc l =
     | Wasm -> Emit_wasm.f oc p
     | MinCaml -> RegAlloc.f p |> Emit.f oc
     | VirtualDump -> Asm.show_prog p |> Printf.fprintf oc "%s"
-    | BC ->
-      BacCaml.Emit.(
-        f p
-        |> Array.map (fun inst -> show_inst inst |> Printf.fprintf oc "%s\n")
-        |> ignore)
+    | BacCamlDump ->
+      let open BacCaml in
+      Emit.(
+        f p |> Array.to_list |> Insts.pp_insts |> ignore)
+    | BacCamlInterp ->
+      let open BacCaml in
+      ignore (VM.run_asm (Emit.f p))
   end
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
-let file f =
+let main f =
   let inchan = open_in (f ^ ".ml") in
   let outchan =
     match !backend_type with
     | Wasm -> open_out (f ^ ".wat")
     | MinCaml -> open_out (f ^ ".s")
-    | VirtualDump -> stdout
-    | BC -> stdout
+    | _ -> stdout
   in
+  (match !debug with
+   | True -> BacCaml.VM.debug_flg := true;
+   | False -> ());
   try
     let input = Lexing.from_channel inchan in
-    match !debug with
-    | Ast -> ast stdout input
-    | False -> lexbuf outchan input ;
-      close_in inchan ;
-      close_out outchan
+    match !ast_dump with
+    | True -> ast outchan input
+    | False -> begin
+        lexbuf outchan input ;
+        close_in inchan ;
+        close_out outchan
+      end
   with e -> close_in inchan ; close_out outchan ; raise e
 
 let () =
@@ -77,11 +92,17 @@ let () =
       , Arg.Int (fun i -> limit := i)
       , "maximum number of optimizations iterated" )
     ; ( "-ast"
-      , Arg.Unit (fun _ -> debug := Ast)
+      , Arg.Unit (fun _ -> ast_dump := True)
       , "emit abstract syntax tree")
+    ; ("-debug"
+      , Arg.Unit (fun _ -> debug := True)
+      , "enable debug mode")
     ; ( "-bc"
-      , Arg.Unit (fun _ -> backend_type := BC)
-      , "")
+      , Arg.Unit (fun _ -> backend_type := BacCamlDump)
+      , "emit bytecode instrunctions for baccaml")
+    ; ( "-bc-interp"
+      , Arg.Unit (fun _ -> backend_type := BacCamlInterp)
+      , "run bytecode instrunctions")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
     ]
     (fun s -> files := !files @ [s])
@@ -90,5 +111,5 @@ let () =
         "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..."
         Sys.argv.(0) ) ;
   List.iter
-    (fun f -> file (Filename.remove_extension f))
+    (fun f -> main (Filename.remove_extension f))
     !files
