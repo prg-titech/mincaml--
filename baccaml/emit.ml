@@ -1,32 +1,7 @@
 open MinCaml
+open Insts
 
 exception Error of string
-
-type inst =
-  | ADD
-  | SUB
-  | MUL
-  | NEG
-  | LT
-  | LTEq
-  | Eq
-  | JUMP_IF_ZERO
-  | JUMP
-  | CALL
-  | RET
-  | HALT
-  | DUP
-  | POP1
-  | CONST
-  | GET
-  | PUT
-  | ARRAY_MAKE
-  | PRINT_INT
-  | METHOD_ENTRY
-  | Literal of int
-  | Lref of string
-  | Ldef of string
-[@@deriving show]
 
 (* generate a unique label id *)
 let gen_label, reset =
@@ -81,6 +56,7 @@ and compile_exp env =
   function
   | Nop -> []
   | Set i -> [CONST; Literal i]
+  | Mov var -> [DUP; Literal (lookup env var)]
   | Add (x, y) ->
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
@@ -89,27 +65,24 @@ and compile_exp env =
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
     [SUB]
-  | IfEq (x, y, e1, e2) ->
-    let l2,l1 = gen_label(),gen_label () in
-    [DUP; Literal (lookup env x)] @
-    (compile_id_or_imm (shift_env env) y) @
-    [LT] @
-    [JUMP_IF_ZERO; Lref l2] @
-    (compile_t env e2) @
-    [Ldef l2] @
-    (compile_t env e2)
-  | IfLE (x,y,e1,e2) ->
+  | IfLE (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm env y) @
     [LT] @
-    [JUMP_IF_ZERO; Lref l2] @
-    (compile_t env e1) @
-    [Ldef l2] @
-    (compile_t env e2)
+    [JUMP_IF_ZERO; Lref l1] @
+    (compile_t env then_exp) @
+    [CONST; Literal 0; JUMP_IF_ZERO; Lref l2] @
+    [Ldef l1] @
+    (compile_t env else_exp) @
+    [Ldef l2]
+  | IfGE (x, y, e1, e2)
+  | IfEq (x, y, e1, e2) -> compile_exp env (IfLE (x, y, e2, e1))
   | CallDir (Id.L "min_caml_print_int", [x], _) ->
     (compile_id_or_imm env (V x)) @
     [PRINT_INT]
+  | CallDir (Id.L "min_caml_print_newline", _, _) ->
+    [PRINT_NEWLINE]
   | CallDir (Id.L "min_caml_create_array", [x; y], _) ->
     (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) (V y)) @
@@ -122,7 +95,7 @@ and compile_exp env =
      |> fst
      |> List.rev
      |> List.flatten) @
-     [CALL; Lref var]
+     [CALL; Lref var; Literal (List.length rands)]
   | Ld (x, y, _) ->
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
@@ -132,8 +105,8 @@ and compile_exp env =
     [DUP; Literal (lookup (shift_env env) y)] @
     (compile_id_or_imm (shift_env env) z) @
     [PUT]
-  | t ->
-    failwith (Printf.sprintf "un matched pattern")
+  | exp ->
+    failwith (Printf.sprintf "un matched pattern: %s" (Asm.show_exp exp))
 
 module List= ListLabels
 
