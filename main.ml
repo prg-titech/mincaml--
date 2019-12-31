@@ -2,15 +2,13 @@ open MinCaml
 
 type backend = MinCaml | Wasm
 
-type debug = True | False
+type debug = Ast | KNorm | False
 
 let backend_type = ref MinCaml
 
 let debug = ref False
 
 let limit = ref 1000
-
-let is_unparse = ref false
 
 let rec iter n e =
   Format.eprintf "iteration %d@." n ;
@@ -22,7 +20,19 @@ let rec iter n e =
 let ast oc l =
   Id.counter := 0;
   Parser.exp Lexer.token l
-  |> Syntax.print_t
+  |> Syntax.show
+  |> print_endline
+
+let knorm oc l =
+  Id.counter := 0 ;
+  Typing.extenv := M.empty ;
+  Parser.exp Lexer.token l
+  |> Typing.f
+  |> KNormal.f
+  |> Alpha.f
+  |> iter !limit
+  |> KNormal.show
+  |> Printf.fprintf oc "%s"
 
 let lexbuf oc l =
   Id.counter := 0 ;
@@ -39,7 +49,6 @@ let lexbuf oc l =
   match !backend_type with
   | Wasm -> Emit_wasm.f oc p
   | MinCaml -> RegAlloc.f p |> Emit.f oc
-  | _ -> failwith "Unimplemented backend."
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
@@ -49,12 +58,13 @@ let file f =
     match !backend_type with
     | Wasm -> open_out (f ^ ".wat")
     | MinCaml -> open_out (f ^ ".s")
-    | _ -> assert false
   in
   try
+    let input = Lexing.from_channel inchan in
     match !debug with
-    | True -> ast stdout (Lexing.from_channel inchan)
-    | False -> lexbuf outchan (Lexing.from_channel inchan) ;
+    | Ast -> ast stdout input
+    | KNorm -> knorm stdout input
+    | False -> lexbuf outchan input ;
       close_in inchan ;
       close_out outchan
   with e -> close_in inchan ; close_out outchan ; raise e
@@ -68,8 +78,13 @@ let () =
     ; ( "-iter"
       , Arg.Int (fun i -> limit := i)
       , "maximum number of optimizations iterated" )
+    ; ( "-ast"
+      , Arg.Unit (fun _ -> debug := Ast)
+      , "emit abstract syntax tree")
+    ; ( "-knorm"
+      , Arg.Unit (fun _ -> debug := KNorm)
+      , "")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
-    ; ("-debug", Arg.Unit (fun _ -> debug := True), "enable debug mode")
     ]
     (fun s -> files := !files @ [s])
     ( "Mitou Min-Caml Compiler (C) Eijiro Sumii\n"

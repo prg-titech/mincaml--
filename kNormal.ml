@@ -24,7 +24,9 @@ type t = (* K正規化後の式 (caml2html: knormal_t) *)
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.t
   | ExtFunApp of Id.t * Id.t list
+[@@deriving show]
 and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
+[@@deriving show]
 
 let rec fv = function (* 式に出現する（自由な）変数 (caml2html: knormal_fv) *)
   | Unit | Int(_) | Float(_) | ExtArray(_) -> S.empty
