@@ -1,7 +1,7 @@
 (*MINCAML*) let rec f n i d s =
 (*MINCAML*)   if i > n then s else
-(*MINCAML*)   f n (i + 1) (d +. 1.0) (s +. 1.0 /. d) in
-(*MINCAML*) print_int (int_of_float (1000000.0 *. f 100000000 2 2.0 1.0));
+(*MINCAML*)   f n (i + 1) (d + 1) (s + 1 - d) in
+(*MINCAML*) print_int ((1000000 * f 100000000 2 2 1));
 (*NOMINCAML let f n = *)
 (*NOMINCAML   let s = ref 1.0 in *)
 (*NOMINCAML   let d = ref 2.0 in *)
