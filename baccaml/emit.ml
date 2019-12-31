@@ -1,5 +1,4 @@
 open MinCaml
-open Asm
 
 exception Error of string
 
@@ -66,18 +65,20 @@ let gen_label _ =
 let reset _ = label_counter := 0
 
 let compile_id_or_imm env = function
-  | C (n) -> [CONST; Literal n]
-  | V (x) -> [DUP; Literal (lookup env x)]
+  | Asm.C (n) -> [CONST; Literal n]
+  | Asm.V (x) -> [DUP; Literal (lookup env x)]
 
 let rec compile_t env = function
-  | Ans (e) -> compile_exp env e
-  | Let ((x,_), exp, t) ->
+  | Asm.Ans (e) -> compile_exp env e
+  | Asm.Let ((x,_), exp, t) ->
     let ex_env = extend_env env x in
     (compile_exp env exp) @
     (compile_t ex_env t) @
     [POP1]
 
-and compile_exp env = function
+and compile_exp env =
+  let open Asm in
+  function
   | Nop -> []
   | Set i -> [CONST; Literal i]
   | Add (x, y) ->
@@ -161,12 +162,12 @@ let resolve_labels instrs =
 
 
 let compile_fun_body fenv name arity exp env =
-  (exp |> compile_t env) @
-  (if name = "main" then [HALT]
-   else [RET; Literal arity])
+  [Ldef name] @
+  (compile_t env exp) @
+  (if name = "main" then [HALT] else [RET; Literal arity])
 
 
-let compile_fun (fenv : Id.l -> fundef) {name= Id.L name; args; body;} =
+let compile_fun (fenv : Id.l -> Asm.fundef) Asm.{name= Id.L name; args; body;} =
   compile_fun_body fenv name (List.length args)
     body (build_arg_env args)
 
@@ -175,7 +176,7 @@ let compile_funs fundefs =
   (* let fenv name = fst(List.find (fun (_,{name=n}) -> name=n)
    *                       (List.mapi (fun idx fdef -> (idx,fdef))
    *                          fundefs)) in *)
-  let fenv name = List.find ~f:(fun {name=n} -> n=name) fundefs in
+  let fenv name = List.find ~f:(fun Asm.{name=n} -> n=name) fundefs in
   Array.of_list(resolve_labels
                   (List.flatten
                      (List.map ~f:(compile_fun fenv) fundefs)))
@@ -186,9 +187,7 @@ let resolve_labels' instrs =
       | Ldef n -> (addr, (Lref n, Literal (addr)) :: env)
       | _ -> (addr+1, env))
 
-let f (Prog (_, fundefs, main)) =
-  let main = { name= Id.L ("main"); args= []; fargs= []; ret= Type.Int;
-               body = main} in
-  Array.of_list (
-    resolve_labels
-      (Array.to_list (compile_funs (main :: fundefs))))
+let f (Asm.Prog (_, fundefs, main)) =
+  let main = Asm.{ name= Id.L ("main"); args= []; fargs= []; ret= Type.Int;
+                   body = main} in
+  (compile_funs (main :: fundefs))
