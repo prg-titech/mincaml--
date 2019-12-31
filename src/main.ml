@@ -7,21 +7,18 @@ type backend =
   | BacCamlVirtDump
   | BacCamlInterp
 
-type debug = True | False
-
-type baccaml_instr_info = True | False
-
-type ast_dump = True | False
-
 let backend_type = ref MinCaml
 
-let debug = ref False
+let debug = ref false
 
-let baccaml_instr_info = ref False
+let baccaml_instr_info = ref false
 
-let ast_dump = ref False
+let ast_dump = ref false
 
 let limit = ref 1000
+
+let with_flag flag ~tru:f ~fls:g =
+  if !flag then f () else g ()
 
 let rec iter n e =
   Format.eprintf "iteration %d@." n ;
@@ -69,13 +66,11 @@ let main f =
   in
   try
     let input = Lexing.from_channel inchan in
-    match !ast_dump with
-    | True -> ast outchan input
-    | False -> begin
-        lexbuf outchan input ;
-        close_in inchan ;
-        close_out outchan
-      end
+    with_flag ast_dump
+      ~tru:(fun _ -> ast outchan input)
+      ~fls:(fun _ -> lexbuf outchan input ;
+             close_in inchan ;
+             close_out outchan)
   with e -> close_in inchan ; close_out outchan ; raise e
 
 let () =
@@ -88,13 +83,13 @@ let () =
       , Arg.Int (fun i -> limit := i)
       , "maximum number of optimizations iterated" )
     ; ( "-ast"
-      , Arg.Unit (fun _ -> ast_dump := True)
+      , Arg.Unit (fun _ -> ast_dump := true)
       , "emit abstract syntax tree")
     ; ("-virtual"
       , Arg.Unit (fun _ -> backend_type := VirtDump)
       , "emit virtual machine code")
     ; ("-debug"
-      , Arg.Unit (fun _ -> debug := True)
+      , Arg.Unit (fun _ -> debug := true)
       , "enable debug mode")
     ; ( "-bc-dump"
       , Arg.Unit (fun _ -> backend_type := BacCamlVirtDump)
@@ -103,7 +98,7 @@ let () =
       , Arg.Unit (fun _ -> backend_type := BacCamlInterp)
       , "run bytecode instrunctions")
     ; ( "-bc-inst"
-      , Arg.Unit (fun _ -> baccaml_instr_info := True)
+      , Arg.Unit (fun _ -> baccaml_instr_info := true)
       , "show instruction map")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
     ]
@@ -112,11 +107,10 @@ let () =
     ^ Printf.sprintf
         "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..."
         Sys.argv.(0) ) ;
-  (match !baccaml_instr_info with
-   | True ->
-     BacCaml.(Insts.pp_inst_map ())
-   | False ->
-     (match !debug with True -> BacCaml.VM.debug_flg := true | False -> ());
-     List.iter
-       (fun f -> main (Filename.remove_extension f))
-       !files);
+  with_flag baccaml_instr_info
+    ~tru:(fun _ -> BacCaml.(Insts.pp_inst_map ()))
+    ~fls:(fun _ ->
+        with_flag debug ~tru:(fun _ -> BacCaml.VM.debug_flg := true) ~fls:(fun _ -> ());
+        List.iter
+          (fun f -> main (Filename.remove_extension f))
+          !files)
