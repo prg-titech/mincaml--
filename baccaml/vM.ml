@@ -239,6 +239,10 @@ let rec interp code pc stack =
       let n,stack = pop stack in
       print_int (int_of_value n);
       interp code pc stack
+    | PRINT_NEWLINE ->
+      print_newline ();
+      interp code pc stack
+    | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst))
   end
 
 (* run the given program by calling the function id 0 *)
