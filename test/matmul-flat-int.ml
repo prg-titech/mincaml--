@@ -31,9 +31,4 @@ b.(0).(0) <- 7; b.(0).(1) <- 8;
 b.(1).(0) <- 9; b.(1).(1) <- 10;
 b.(2).(0) <- 1; b.(2).(1) <- 12;
 let d = mul 2 3 2 a b c in
-print_int ((c.(0).(0)));
-print_newline ();
-print_int ((c.(0).(1)));
-print_newline ();
-print_int ((c.(1).(0)));
-print_newline ()
+print_int ((c.(0).(0)) + c.(0).(1) + c.(1).(0) + c.(1).(1))
