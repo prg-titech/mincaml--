@@ -6,6 +6,7 @@ type inst =
   | NEG
   | NOT
   | LT
+  | EQ
   | JUMP_IF_ZERO
   | JUMP
   | CALL
@@ -34,6 +35,7 @@ let insts = [|
   NEG;
   NOT;
   LT;
+  EQ;
   JUMP_IF_ZERO;
   JUMP;
   CALL;
@@ -51,32 +53,36 @@ let insts = [|
   METHOD_ENTRY
 |]
 
-let pp_insts_counter = ref 1
-let rec pp_insts insts =
+let pp_insts_counter = ref 0
+let pp_pc () =
+  print_int !pp_insts_counter;
+  print_string "\t";
+  incr pp_insts_counter
+
+let rec pp_insts ?(i=0) insts =
   match insts with
   | [] -> ()
   | hd :: tl ->
     begin
       match hd with
-      | CONST | DUP | JUMP_IF_ZERO | JUMP ->
-        print_int !pp_insts_counter; print_string "\t";
+      | CONST | DUP
+      | JUMP | JUMP_IF_ZERO
+      | RET ->
+        pp_pc ();
         print_string (show_inst hd); print_string " ";
-        incr pp_insts_counter;
-        pp_insts tl
+        pp_insts ~i:0 tl
       | CALL ->
-        print_int !pp_insts_counter; print_string "\t";
+        pp_pc ();
         print_string (show_inst hd); print_string " ";
-        let hd,tl = List.hd tl,List.tl tl in
-        print_string (show_inst hd); print_string " ";
-        incr pp_insts_counter;
-        pp_insts tl
+        pp_insts ~i:1 tl
       | Literal n ->
-        print_string (show_inst hd); print_newline ();
+        print_string "\t"; print_string (show_inst hd);
+        if i = 0 then print_newline ()
+        else print_string "\t";
         incr pp_insts_counter;
-        pp_insts tl
+        pp_insts ~i:(i-1) tl
       | _ ->
-        print_int !pp_insts_counter; print_string "\t";
+        pp_pc ();
         print_string (show_inst hd); print_newline ();
-        incr pp_insts_counter;
-        pp_insts tl
+        pp_insts ~i:0 tl
     end;

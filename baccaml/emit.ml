@@ -69,10 +69,21 @@ and compile_exp env =
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
     [MUL]
+  | IfEq (x, y, then_exp, else_exp) ->
+    let l2,l1 = gen_label(),gen_label () in
+    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm (shift_env env) y) @
+    [EQ] @
+    [JUMP_IF_ZERO; Lref l1] @
+    (compile_t env then_exp) @
+    [CONST; Literal 0; JUMP_IF_ZERO; Lref l2] @
+    [Ldef l1] @
+    (compile_t env else_exp) @
+    [Ldef l2]
   | IfLE (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
     [DUP; Literal (lookup env x)] @
-    (compile_id_or_imm env y) @
+    (compile_id_or_imm (shift_env env) y) @
     [LT] @
     [JUMP_IF_ZERO; Lref l1] @
     (compile_t env then_exp) @
@@ -80,8 +91,7 @@ and compile_exp env =
     [Ldef l1] @
     (compile_t env else_exp) @
     [Ldef l2]
-  | IfGE (x, y, e1, e2)
-  | IfEq (x, y, e1, e2) -> compile_exp env (IfLE (x, y, e2, e1))
+  | IfGE (x, y, e1, e2) -> compile_exp env (IfLE (x, y, e2, e1))
   | CallDir (Id.L "min_caml_print_int", [x], _) ->
     (compile_id_or_imm env (V x)) @
     [PRINT_INT]

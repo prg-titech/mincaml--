@@ -50,6 +50,10 @@ module Value = struct
     | Int' i, Int' j -> i < j
     | _ -> failwith "invalid value"
 
+  let (|=|) v1 v2 = match v1, v2 with
+    | Int' i, Int' j -> i = j
+    | _ -> failwith "invalid value"
+
   let int_of_value = function
       Int' i -> i
     | _ -> failwith "array is not int"
@@ -122,7 +126,7 @@ let checkpoint =
 
 let debug pc inst stack =
   if !debug_flg then
-    Printf.eprintf "%d %s %s\n" (pc-1) (show_inst inst) (dump_stack stack)
+    Printf.printf "%d %s %s\n" (pc-1) (show_inst inst) (dump_stack stack)
   else ()
 
 let rec interp code pc stack =
@@ -148,7 +152,8 @@ let rec interp code pc stack =
       let v1,stack = pop stack in
       let    stack = push stack (v1 |+| v2) in
       interp  code pc stack
-    | SUB -> let v2,stack = pop stack in
+    | SUB ->
+      let v2,stack = pop stack in
       let v1,stack = pop stack in
       let    stack = push stack (v1 |-| v2) in
       interp  code pc stack
@@ -160,6 +165,11 @@ let rec interp code pc stack =
       let v2,stack = pop stack in
       let v1,stack = pop stack in
       let    stack = push stack (if v1 |<| v2 then Int' 1 else Int' 0) in
+      interp  code pc stack
+    | EQ ->
+      let v2,stack = pop stack in
+      let v1,stack = pop stack in
+      let    stack = push stack (if v1 |=| v2 then Int' 1 else Int' 0) in
       interp  code pc stack
     | CONST -> let c,pc = fetch code pc in
       let stack = push stack (value_of_int c) in
@@ -249,7 +259,7 @@ let rec interp code pc stack =
 type fundef_bin_t = int array
 let run_bin : fundef_bin_t -> int = fun fundefs ->
   let open Value in
-  let stack = (push (make_stack ()) (value_of_int (-987))) in
+  let stack = push (make_stack ()) (value_of_int (-987)) in
   int_of_value @@ interp fundefs 0 stack
 
 (* convert the given program into binary, and then run *)
