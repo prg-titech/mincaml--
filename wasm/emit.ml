@@ -1,3 +1,4 @@
+open MinCaml
 open Asm
 
 exception Error of string

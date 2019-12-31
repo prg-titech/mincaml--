@@ -1,3 +1,4 @@
+open MinCaml
 open Asm
 
 external gethi : float -> int32 = "gethi"

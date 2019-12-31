@@ -46,16 +46,11 @@ let lexbuf oc l =
   |> fun p ->
   begin
     match !backend_type with
-    | Wasm -> Emit_wasm.f oc p
-    | MinCaml -> RegAlloc.f p |> Emit.f oc
+    | Wasm -> Wasm.Emit.f oc p
+    | MinCaml -> RegAlloc.f p |> X86.Emit.f oc
     | VirtualDump -> Asm.show_prog p |> Printf.fprintf oc "%s"
-    | BacCamlDump ->
-      let open BacCaml in
-      Emit.(
-        f p |> Array.to_list |> Insts.pp_insts |> ignore)
-    | BacCamlInterp ->
-      let open BacCaml in
-      ignore (VM.run_asm (Emit.f p))
+    | BacCamlDump -> BacCaml.(Emit.(f p |> Array.to_list |> Insts.pp_insts |> ignore))
+    | BacCamlInterp -> ignore (BacCaml.(VM.run_asm (Emit.f p)))
   end
 
 let string s = lexbuf stdout (Lexing.from_string s)

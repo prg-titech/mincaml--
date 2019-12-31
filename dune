@@ -15,4 +15,4 @@
  (public_name min-caml)
  (flags (-w -4-33-40-41))
  (modules Main)
- (libraries MinCaml BacCaml))
+ (libraries MinCaml BacCaml x86 x64 wasm))
