@@ -1,8 +1,8 @@
 open MinCaml
 
-type backend = MinCaml | Wasm
+type backend = MinCaml | Wasm | VirtualDump | BC
 
-type debug = Ast | KNorm | False
+type debug = Ast | False
 
 let backend_type = ref MinCaml
 
@@ -23,17 +23,6 @@ let ast oc l =
   |> Syntax.show
   |> print_endline
 
-let knorm oc l =
-  Id.counter := 0 ;
-  Typing.extenv := M.empty ;
-  Parser.exp Lexer.token l
-  |> Typing.f
-  |> KNormal.f
-  |> Alpha.f
-  |> iter !limit
-  |> KNormal.show
-  |> Printf.fprintf oc "%s"
-
 let lexbuf oc l =
   Id.counter := 0 ;
   Typing.extenv := M.empty ;
@@ -46,9 +35,17 @@ let lexbuf oc l =
   |> Virtual.f
   |> Simm.f
   |> fun p ->
-  match !backend_type with
-  | Wasm -> Emit_wasm.f oc p
-  | MinCaml -> RegAlloc.f p |> Emit.f oc
+  begin
+    match !backend_type with
+    | Wasm -> Emit_wasm.f oc p
+    | MinCaml -> RegAlloc.f p |> Emit.f oc
+    | VirtualDump -> Asm.show_prog p |> Printf.fprintf oc "%s"
+    | BC ->
+      BacCaml.Emit.(
+        f p
+        |> Array.map (fun inst -> show_inst inst |> Printf.fprintf oc "%s\n")
+        |> ignore)
+  end
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
@@ -58,12 +55,13 @@ let file f =
     match !backend_type with
     | Wasm -> open_out (f ^ ".wat")
     | MinCaml -> open_out (f ^ ".s")
+    | VirtualDump -> stdout
+    | BC -> stdout
   in
   try
     let input = Lexing.from_channel inchan in
     match !debug with
     | Ast -> ast stdout input
-    | KNorm -> knorm stdout input
     | False -> lexbuf outchan input ;
       close_in inchan ;
       close_out outchan
@@ -81,8 +79,8 @@ let () =
     ; ( "-ast"
       , Arg.Unit (fun _ -> debug := Ast)
       , "emit abstract syntax tree")
-    ; ( "-knorm"
-      , Arg.Unit (fun _ -> debug := KNorm)
+    ; ( "-bc"
+      , Arg.Unit (fun _ -> backend_type := BC)
       , "")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
     ]

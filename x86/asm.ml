@@ -1,7 +1,9 @@
 type id_or_imm = V of Id.t | C of int
+[@@deriving show]
 type t =
   | Ans of exp
   | Let of (Id.t * Type.t) * exp * t
+[@@deriving show]
 and exp =
   | Nop
   | Set of int
@@ -32,9 +34,12 @@ and exp =
   | CallDir of Id.l * Id.t list * Id.t list
   | Save of Id.t * Id.t
   | Restore of Id.t
+[@@deriving show]
 type fundef = { name : Id.l; args : Id.t list; fargs : Id.t list; body : t; ret : Type.t }
+[@@deriving show]
 (* プログラム全体 = 浮動小数点数テーブル + トップレベル関数 + メインの式 (caml2html: sparcasm_prog) *)
 type prog = Prog of (Id.l * float) list * fundef list * t
+[@@deriving show]
 
 let fletd(x, e1, e2) = Let((x, Type.Float), e1, e2)
 let seq(e1, e2) = Let((Id.gentmp Type.Unit, Type.Unit), e1, e2)

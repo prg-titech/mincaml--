@@ -35,6 +35,10 @@ and exp =
 type fundef = { name : Id.l; args : Id.t list; fargs : Id.t list; body : t; ret : Type.t }
 type prog = Prog of (Id.l * float) list * fundef list * t
 
+val show : t -> string
+val show_fundef : fundef -> string
+val show_prog : prog -> string
+
 val fletd : Id.t * exp * t -> t (* shorthand of Let for float *)
 val seq : exp * t -> t (* shorthand of Let for unit *)
 
