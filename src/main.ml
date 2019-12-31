@@ -57,8 +57,9 @@ let lexbuf oc l =
 let string s = lexbuf stdout (Lexing.from_string s)
 
 let main f =
-  let inchan = open_in (f ^ ".ml") in
+  let inchan = open_in f in
   let outchan =
+    let f = Filename.remove_extension f in
     match !backend_type with
     | Wasm -> open_out (f ^ ".wat")
     | MinCaml -> open_out (f ^ ".s")
@@ -112,5 +113,5 @@ let () =
     ~fls:(fun _ ->
         with_flag debug ~tru:(fun _ -> BacCaml.VM.debug_flg := true) ~fls:(fun _ -> ());
         List.iter
-          (fun f -> main (Filename.remove_extension f))
+          (fun f -> main f)
           !files)
