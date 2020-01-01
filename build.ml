@@ -1,12 +1,17 @@
 open Printf
+module F = Filename
 
 let s = sprintf
 let cmd = Sys.command
 
 let () =
-  let interp = Sys.argv.(1) in
-  let f = Filename.chop_extension interp in
-  if cmd (s "dune exec min-caml -- %s" interp) = 0 then
-    ignore (cmd(s "gcc -m32 -O2 -Wall src/stub.c src/libmincaml.S %s -lm -o %s" (f ^ ".s") f))
-  else
-    failwith "compilation failed."
+  let target = Sys.argv.(1) in
+  if F.check_suffix target ".ml" then
+    ignore (cmd (s "dune exec bytegen -- %s" target))
+  else if F.check_suffix target ".bc" then
+    let f = F.chop_extension target in
+    if cmd (s "dune exec min-caml -- %s" target) = 0 then
+      ignore (cmd(s "gcc -m32 -O2 -Wall src/stub.c src/libmincaml.S %s -lm -o %s" (f ^ ".s") f))
+    else
+      failwith "compilation failed."
+  else ()
