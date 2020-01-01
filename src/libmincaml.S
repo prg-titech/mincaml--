@@ -237,6 +237,18 @@ min_caml_atan:
 	movl	%ebp, %esp
 	popl	%ebp
 	ret
+.globl min_caml_print_debug
+min_caml_print_debug:
+	pushl	%ebp
+	movl	%esp, %ebp
+	ALIGNSTACK3
+	pushl	%ecx
+	pushl	%ebx
+	pushl	%eax
+	call	interp_debug
+	movl	%ebp, %esp
+	popl	%ebp
+	ret
 .data
 format_int:
 	.asciz	"%d"
@@ -257,5 +269,5 @@ min_caml_fnegd:
 	.long	0
 	.long	0
 .globl min_caml_hp
-min_caml_hp:	
+min_caml_hp:
 	.long	0x0

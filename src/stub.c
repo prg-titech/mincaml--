@@ -5,6 +5,7 @@
 
 extern void min_caml_start(char *, char *);
 extern int min_caml_get_current_micros();
+extern void interp_debug(int, int, int);
 
 /* "stderr" is a macro and cannot be referred to in libmincaml.S, so */
 /*    this "min_caml_stderr" is used (in place of "__iob+32") for better */
@@ -17,6 +18,11 @@ int min_caml_get_current_micros() {
   struct timeval current_time;
   gettimeofday(&current_time, NULL);
   return current_time.tv_sec * (int)1e6 + current_time.tv_usec;
+}
+
+void interp_debug(int pc, int instr, int sp) {
+  fprintf(stderr, "pc: %d, instr: %d, sp: %d\n", pc, instr, sp);
+  return;
 }
 
 int main(int argc, char *argv[]) {
