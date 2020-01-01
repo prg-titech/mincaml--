@@ -32,7 +32,7 @@ let rec lexbuf oc l =
   |> fun p -> begin
     match !backend_type with
     | Virtual -> p |> Asm.show_prog |> print_endline
-    | Bytecode -> ()
+    | Bytecode -> p |> Emit.f |> Insts.Printer.pp_bytecode oc
     | Interp -> p |> Emit.f |> VM.run_asm |> ignore
     | Nothing -> ()
   end

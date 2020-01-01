@@ -28,9 +28,8 @@ type inst =
   | Ldef of string
 [@@deriving show]
 
-
 let insts = [|
-   UNIT
+    UNIT
   ; ADD
   ; SUB
   ; MUL
@@ -56,11 +55,13 @@ let insts = [|
   ; DUP0
   |]
 
-module Printer : sig
-  val pp_inst_map : unit -> unit
-  val pp_insts : ?i:int -> inst list -> unit
-end = struct
+let index_of instr =
+  Array.to_list insts
+  |> List.mapi (fun i instr -> (instr,i))
+  |> List.find (fun (instr',i) -> instr = instr')
+  |> snd
 
+module Printer = struct
   let pp_inst_map () =
     ignore (
       Array.fold_left (fun i instr ->
@@ -101,4 +102,13 @@ end = struct
           pp_insts ~i:0 tl
       end
 
+  let pp_bytecode oc insts =
+    insts |> Array.fold_left begin fun i instr ->
+      (match instr with
+       | Literal j ->
+         Printf.fprintf oc "code.(%d) <- %d;\n" i j
+       | _ ->
+         Printf.fprintf oc "code.(%d) <- %d;\n" i (index_of instr));
+      i + 1
+    end 0 |> ignore
 end
