@@ -1,5 +1,6 @@
 open MinCaml
 open Asm
+open Asm.X64
 
 external gethi : float -> int32 = "gethi"
 external getlo : float -> int32 = "getlo"

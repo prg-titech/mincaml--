@@ -1,5 +1,6 @@
 open MinCaml
 open Asm
+open Asm.X86
 
 external gethi : float -> int32 = "gethi"
 
@@ -80,7 +81,7 @@ and g' oc = function
         if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x ;
         Printf.fprintf oc "\tsubl\t%s, %s\n" (pp_id_or_imm z') x )
   | NonTail x, Mul (y, z') ->
-      if V x = z' then Printf.fprintf oc "\timul\t%s, %s\n" y x
+      if V x = z' then Printf.fprintf oc "\timull\t%s, %s\n" y x
       else (
         if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x ;
         Printf.fprintf oc "\timul\t%s, %s\n" (pp_id_or_imm z') x )

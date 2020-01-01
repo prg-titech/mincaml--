@@ -44,19 +44,30 @@ val show_prog : prog -> string
 val fletd : Id.t * exp * t -> t (* shorthand of Let for float *)
 val seq : exp * t -> t (* shorthand of Let for unit *)
 
-val regs : Id.t array
-val fregs : Id.t array
-val allregs : Id.t list
-val allfregs : Id.t list
-val reg_cl : Id.t
-(*
-val reg_sw : Id.t
-val reg_fsw : Id.t
-val reg_ra : Id.t
-*)
-val reg_hp : Id.t
-val reg_sp : Id.t
-val is_reg : Id.t -> bool
+module X86 : sig
+  val regs : Id.t array
+  val fregs : Id.t array
+  val allregs : Id.t list
+  val allfregs : Id.t list
+  val reg_cl : Id.t
+(* val reg_sw : Id.t
+   val reg_fsw : Id.t
+   val reg_ra : Id.t *)
+  val reg_hp : Id.t
+  val reg_sp : Id.t
+  val is_reg : Id.t -> bool
+end
+
+module X64 : sig
+  val regs : Id.t array
+  val fregs : Id.t array
+  val allregs : Id.t list
+  val allfregs : Id.t list
+  val reg_cl : Id.t
+  val reg_hp : Id.t
+  val reg_sp : Id.t
+  val is_reg : Id.t -> bool
+end
 
 val fv : t -> Id.t list
 val concat : t -> Id.t * Type.t -> t -> t

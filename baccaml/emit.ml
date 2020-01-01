@@ -1,6 +1,8 @@
 open MinCaml
 open Insts
 
+module List = ListLabels
+
 exception Error of string
 
 (* generate a unique label id *)
@@ -102,10 +104,10 @@ and compile_exp env =
     (compile_id_or_imm (shift_env env) (V y)) @
     [ARRAY_MAKE]
   | CallDir (Id.L var, rands, _) ->
-    ((List.fold_left (fun (rev_code_list, env) v ->
+    ((List.fold_left ~f:(fun (rev_code_list, env) v ->
          [DUP; Literal (lookup env v)] :: rev_code_list,
          shift_env env)
-        ([], env) rands)
+         ~init:([], env) rands)
      |> fst
      |> List.rev
      |> List.flatten) @
@@ -121,8 +123,6 @@ and compile_exp env =
     [PUT]
   | exp ->
     failwith (Printf.sprintf "un matched pattern: %s" (Asm.show_exp exp))
-
-module List= ListLabels
 
 (* resolving labels *)
 let assoc_if subst elm =
@@ -149,7 +149,7 @@ let resolve_labels instrs =
 
 
 let compile_fun_body fenv name arity exp env =
-  [Ldef name] @
+  [METHOD_ENTRY; Ldef name] @
   (compile_t env exp) @
   (if name = "main" then [HALT] else [RET; Literal arity])
 
@@ -175,6 +175,6 @@ let resolve_labels' instrs =
       | _ -> (addr+1, env))
 
 let f (Asm.Prog (_, fundefs, main)) =
-  let main = Asm.{ name= Id.L ("main"); args= []; fargs= []; ret= Type.Int;
-                   body = main} in
+  let open Asm in
+  let main = { name= Id.L ("main"); args= []; fargs= []; ret= Type.Int; body = main } in
   (compile_funs (main :: fundefs))

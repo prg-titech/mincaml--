@@ -1,6 +1,7 @@
 (* translation into assembly with infinite number of virtual registers *)
 
 open Asm
+open X86
 
 let data = ref [] (* 浮動小数点数の定数テーブル (caml2html: virtual_data) *)
 

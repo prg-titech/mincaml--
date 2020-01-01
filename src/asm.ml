@@ -45,20 +45,35 @@ type prog = Prog of (Id.l * float) list * fundef list * t
 let fletd(x, e1, e2) = Let((x, Type.Float), e1, e2)
 let seq(e1, e2) = Let((Id.gentmp Type.Unit, Type.Unit), e1, e2)
 
-let regs = (* Array.init 16 (fun i -> Printf.sprintf "%%r%d" i) *)
-  [| "%eax"; "%ebx"; "%ecx"; "%edx"; "%esi"; "%edi" |]
-let fregs = Array.init 8 (fun i -> Printf.sprintf "%%xmm%d" i)
-let allregs = Array.to_list regs
-let allfregs = Array.to_list fregs
-let reg_cl = regs.(Array.length regs - 1) (* closure address (caml2html: sparcasm_regcl) *)
+module X86 = struct
+  let regs = (* Array.init 16 (fun i -> Printf.sprintf "%%r%d" i) *)
+    [| "%eax"; "%ebx"; "%ecx"; "%edx"; "%esi"; "%edi" |]
+  let fregs = Array.init 8 (fun i -> Printf.sprintf "%%xmm%d" i)
+  let allregs = Array.to_list regs
+  let allfregs = Array.to_list fregs
+  let reg_cl = regs.(Array.length regs - 1) (* closure address (caml2html: sparcasm_regcl) *)
 (*
-let reg_sw = regs.(Array.length regs - 1) (* temporary for swap *)
-let reg_fsw = fregs.(Array.length fregs - 1) (* temporary for swap *)
+  let reg_sw = regs.(Array.length regs - 1) (* temporary for swap *)
+  let reg_fsw = fregs.(Array.length fregs - 1) (* temporary for swap *)
 *)
-let reg_sp = "%ebp" (* stack pointer *)
-let reg_hp = "min_caml_hp" (* heap pointer (caml2html: sparcasm_reghp) *)
-(* let reg_ra = "%eax" (* return address *) *)
-let is_reg x = (x.[0] = '%' || x = reg_hp)
+  let reg_sp = "%ebp" (* stack pointer *)
+  let reg_hp = "min_caml_hp" (* heap pointer (caml2html: sparcasm_reghp) *)
+  (* let reg_ra = "%eax" (* return address *) *)
+  let is_reg x = (x.[0] = '%' || x = reg_hp)
+end
+
+module X64 = struct
+  let regs = (* Array.init 16 (fun i -> Printf.sprintf "%%r%d" i) *)
+    [| "%rax"; "%rbx"; "%rcx"; "%rdx"; "%rsi"; "%rdi" |]
+  let fregs = Array.init 8 (fun i -> Printf.sprintf "%%xmm%d" i)
+  let allregs = Array.to_list regs
+  let allfregs = Array.to_list fregs
+  let reg_cl = regs.(Array.length regs - 1) (* closure address (caml2html: sparcasm_regcl) *)
+
+  let reg_sp = "%rbp" (* stack pointer *)
+  let reg_hp = "min_caml_hp" (* heap pointer (caml2html: sparcasm_reghp) *)
+  let is_reg x = (x.[0] = '%' || x = reg_hp)
+end
 
 (* super-tenuki *)
 let rec remove_and_uniq xs = function
