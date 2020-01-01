@@ -146,7 +146,7 @@ let rec interp stack sp bytecode pc =
     interp stack (sp + 1) bytecode (pc + 1)
   else
     -1000 in
-let stk  = Array.make 100000 (-987) in
+let stk  = Array.make 200000 (-987) in
 let rec read_code i n arr =
   if i = n then arr
   else
