@@ -20,45 +20,46 @@ let rec push stack sp v = stack.(sp) <- v in
 
 let rec interp stack sp bytecode pc =
   let instr = bytecode.(pc) in
-  if instr = 0 then               (* UNIT *)
+  (* print_debug pc instr sp; *)
+  if instr = 0 then             (* UNIT *)
     interp stack sp bytecode (pc + 1)
-  else if instr = 1 then          (* ADD *)
-    let v2 = stack.(sp - 1) in    (* sp: sp - 1 *)
-    let v1 = stack.(sp - 2) in    (* sp: sp - 2 *)
-    stack.(sp - 2) <- (v1 + v2);  (* sp: sp - 1 *)
+  else if instr = 1 then        (* ADD *)
+    let v2 = stack.(sp - 1) in  (* sp: sp - 1 *)
+    let v1 = stack.(sp - 2) in  (* sp: sp - 2 *)
+    stack.(sp-2) <- (v1+v2);    (* sp: sp - 1 *)
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 2 then          (* SUB *)
+  else if instr = 2 then        (* SUB *)
     let v2 = stack.(sp - 1) in
     let v1 = stack.(sp - 2) in
     stack.(sp - 2) <- (v1 - v2);
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 3 then          (* MUL *)
+  else if instr = 3 then        (* MUL *)
     let v2 = stack.(sp - 1) in
     let v1 = stack.(sp - 2) in
     stack.(sp - 2) <- (v1 * v2);
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 4 then          (* NOT *)
+  else if instr = 4 then        (* NOT *)
     let v = stack.(sp - 1) in
     let n = (if v = 0 then 1 else 0)in
     stack.(sp - 1) <- n;
     interp stack sp bytecode (pc + 1)
-  else if instr = 5 then          (* LT *)
+  else if instr = 5 then        (* LT *)
     let v2 = stack.(sp - 1) in
     let v1 = stack.(sp - 2) in
     let n = (if v1 < v2 then 1 else 0) in
     stack.(sp - 2) <- n;
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 6 then          (* EQ *)
+  else if instr = 6 then        (* EQ *)
     let v1 = stack.(sp - 1) in
     let v2 = stack.(sp - 2) in
     let v = (if v1 = v2 then 1 else 0) in
     stack.(sp - 2) <- v;
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 14 then         (* CONST *)
+  else if instr = 14 then       (* CONST *)
     let c = bytecode.(pc + 1) in
     stack.(sp) <- c;
     interp stack (sp + 1) bytecode (pc + 2)
-  else if instr = 7 then          (* JUMP_IF_ZERO *)
+  else if instr = 7 then        (* JUMP_IF_ZERO *)
     let addr = bytecode.(pc + 1) in
     let v = stack.(sp - 1) in
     let sp2 = sp - 1 in
@@ -66,56 +67,58 @@ let rec interp stack sp bytecode pc =
       interp stack sp2 bytecode addr
     ) else
       interp stack sp2 bytecode (pc + 2)
-  else if instr = 8 then         (* JUMP *)
+  else if instr = 8 then        (* JUMP *)
     let addr = bytecode.(pc + 1) in
     interp stack sp bytecode addr
-  else if instr = 9 then          (* CALL *)
+  else if instr = 9 then        (* CALL *)
     let addr = bytecode.(pc + 1) in
     let _ = bytecode.(pc + 2) in
-    stack.(sp) <- pc + 3;
-    interp stack (sp + 1) bytecode addr
-  else if instr = 22 then         (* CALL_HS *)
+    stack.(sp) <- 100;          (* push jit flag *)
+    stack.(sp + 1) <- pc + 3;
+    interp stack (sp + 2) bytecode addr
+  else if instr = 22 then       (* CALL_HS *)
     let addr = bytecode.(pc + 1) in
     stack.(sp) <- pc + 2;
     interp stack (sp + 1) bytecode addr
-  else if instr = 10 then         (* RET *)
-    let v = stack.(sp - 1) in
+  else if instr = 10 then       (* RET *)
     let n = bytecode.(pc + 1) in
-    let addr = stack.(sp - 2) in  (* sp: sp - 2 *)
-    stack.(sp - n - 2) <- v;      (* sp: sp - 2 - n + 1 = sp - 1 - n *)
-    let sp2 = sp - n - 1 in
+    let v = stack.(sp - 1) in
+    let addr = stack.(sp-2) in  (* sp: sp-3 *)
+    let _ = stack.(sp-3) in     (* sp: sp-3 *)
+    stack.(sp - n - 3) <- v;    (* sp: sp-3-n+1 = sp-2-n *)
+    let sp2 = sp - n - 2 in
     interp stack sp2 bytecode addr
-  else if instr = 11 then         (* HALT *)
+  else if instr = 11 then       (* HALT *)
     stack.(sp - 1)
-  else if instr = 12 then         (* DUP *)
+  else if instr = 12 then       (* DUP *)
     let n = bytecode.(pc + 1) in
     let v = stack.(sp - n - 1) in
     stack.(sp) <- v;
     interp stack (sp + 1) bytecode (pc + 2)
-  else if instr = 13 then         (* POP1 *)
+  else if instr = 13 then       (* POP1 *)
     let v = stack.(sp - 1) in
     let _ = stack.(sp - 2) in
     stack.(sp - 2) <- v;
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 15 then         (* GET *)
+  else if instr = 15 then       (* GET *)
     let n = stack.(sp - 1) in
     let arr = cast_fIAI(stack.(sp - 2)) in
     stack.(sp - 2) <- arr.(n);
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 16 then         (* PUT *)
+  else if instr = 16 then       (* PUT *)
     let i = stack.(sp - 1) in
     let arr = cast_fIAI(stack.(sp - 2)) in
     let n = stack.(sp - 3) in
     arr.(i) <- n;
     stack.(sp - 3) <- cast_fAII(arr);
     interp stack (sp - 2) bytecode (pc + 1)
-  else if instr = 17 then         (* ARRAYMAKE *)
+  else if instr = 17 then       (* ARRAYMAKE *)
     let init = stack.(sp - 1) in
     let size = stack.(sp - 2) in
     let a = Array.make size init in
     stack.(sp - 2) <- cast_fAII(a);
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 18 then         (* FRAME_RESET *)
+  else if instr = 18 then       (* FRAME_RESET *)
     let o = bytecode.(pc + 1) in
     let l = bytecode.(pc + 2) in
     let n = bytecode.(pc + 3) in
@@ -128,15 +131,15 @@ let rec interp stack sp bytecode pc =
     let v = stack.(sp - 1) in
     print_int v;
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 20 then         (* POP0 *)
+  else if instr = 20 then       (* POP0 *)
     let _ = stack.(sp - 1) in
     interp stack (sp - 1) bytecode (pc + 1)
-  else if instr = 21 then         (* METHOD_ENTRY *)
+  else if instr = 21 then       (* METHOD_ENTRY *)
     interp stack sp bytecode (pc + 1)
-  else if instr = 22 then        (* CONST0 *)
+  else if instr = 22 then       (* CONST0 *)
     (stack.(sp) <- 0;
      interp stack (sp + 1) bytecode (pc + 1))
-  else if instr = 23 then        (* DUP0 *)
+  else if instr = 23 then       (* DUP0 *)
     let v = stack.(sp - 1) in
     stack.(sp) <- v;
     interp stack (sp + 1) bytecode (pc + 1)
@@ -145,362 +148,303 @@ let rec interp stack sp bytecode pc =
 let stk  = Array.make 100000 (-987) in
 let code = Array.make 100000 11 in
 (* fib *)
-(*
-code.(0) <- 14;
-code.(1) <- 10;
-code.(2) <- 12;
-code.(3) <- 0;
-code.(4) <- 9;
-code.(5) <- 13;
+(* matmul (stack hybridization) *)
+code.(0) <- 21;
+code.(1) <- 14;
+code.(2) <- 0;
+code.(3) <- 14;
+code.(4) <- 0;
+code.(5) <- 12;
 code.(6) <- 1;
 code.(7) <- 12;
-code.(8) <- 0;
-code.(9) <- 19;
-code.(10) <- 13;
-code.(11) <- 13;
-code.(12) <- 11;
-code.(13) <- 12;
-code.(14) <- 1;
-code.(15) <- 14;
-code.(16) <- 2;
-code.(17) <- 5;
-code.(18) <- 7;
-code.(19) <- 26;
-code.(20) <- 12;
-code.(21) <- 1;
-code.(22) <- 14;
-code.(23) <- 0;
-code.(24) <- 7;
-code.(25) <- 55;
-code.(26) <- 12;
-code.(27) <- 1;
-code.(28) <- 14;
-code.(29) <- 1;
-code.(30) <- 2;
+code.(8) <- 1;
+code.(9) <- 17;
+code.(10) <- 14;
+code.(11) <- 2;
+code.(12) <- 14;
+code.(13) <- 3;
+code.(14) <- 12;
+code.(15) <- 1;
+code.(16) <- 12;
+code.(17) <- 1;
+code.(18) <- 12;
+code.(19) <- 4;
+code.(20) <- 9;
+code.(21) <- 650;
+code.(22) <- 3;
+code.(23) <- 14;
+code.(24) <- 3;
+code.(25) <- 14;
+code.(26) <- 2;
+code.(27) <- 12;
+code.(28) <- 1;
+code.(29) <- 12;
+code.(30) <- 1;
 code.(31) <- 12;
-code.(32) <- 0;
+code.(32) <- 7;
 code.(33) <- 9;
-code.(34) <- 13;
-code.(35) <- 1;
-code.(36) <- 12;
-code.(37) <- 3;
+code.(34) <- 650;
+code.(35) <- 3;
+code.(36) <- 14;
+code.(37) <- 2;
 code.(38) <- 14;
 code.(39) <- 2;
-code.(40) <- 2;
-code.(41) <- 12;
-code.(42) <- 0;
-code.(43) <- 9;
-code.(44) <- 13;
-code.(45) <- 1;
-code.(46) <- 12;
-code.(47) <- 2;
-code.(48) <- 12;
-code.(49) <- 1;
-code.(50) <- 1;
-code.(51) <- 13;
-code.(52) <- 13;
-code.(53) <- 13;
-code.(54) <- 13;
-code.(55) <- 10;
-code.(56) <- 1;
-*)
-(* matmul *)
-code.(0) <- 14;
-code.(1) <- 0;
-code.(2) <- 14;
-code.(3) <- 0;
-code.(4) <- 12;
-code.(5) <- 1;
-code.(6) <- 12;
-code.(7) <- 1;
-code.(8) <- 17;
-code.(9) <- 14;
-code.(10) <- 2;
-code.(11) <- 14;
-code.(12) <- 3;
-code.(13) <- 12;
-code.(14) <- 1;
-code.(15) <- 12;
-code.(16) <- 1;
-code.(17) <- 12;
-code.(18) <- 4;
-code.(19) <- 9;
-code.(20) <- 643;
-code.(21) <- 3;
-code.(22) <- 14;
-code.(23) <- 3;
-code.(24) <- 14;
-code.(25) <- 2;
-code.(26) <- 12;
-code.(27) <- 1;
-code.(28) <- 12;
-code.(29) <- 1;
-code.(30) <- 12;
-code.(31) <- 7;
-code.(32) <- 9;
-code.(33) <- 643;
-code.(34) <- 3;
-code.(35) <- 14;
-code.(36) <- 2;
-code.(37) <- 14;
-code.(38) <- 2;
-code.(39) <- 12;
-code.(40) <- 1;
-code.(41) <- 12;
-code.(42) <- 1;
-code.(43) <- 12;
-code.(44) <- 10;
-code.(45) <- 9;
-code.(46) <- 643;
-code.(47) <- 3;
-code.(48) <- 12;
-code.(49) <- 6;
-code.(50) <- 14;
-code.(51) <- 0;
-code.(52) <- 15;
-code.(53) <- 14;
-code.(54) <- 1;
-code.(55) <- 12;
-code.(56) <- 0;
-code.(57) <- 12;
-code.(58) <- 2;
-code.(59) <- 14;
-code.(60) <- 0;
-code.(61) <- 16;
-code.(62) <- 12;
-code.(63) <- 9;
-code.(64) <- 14;
-code.(65) <- 0;
-code.(66) <- 15;
-code.(67) <- 14;
-code.(68) <- 2;
-code.(69) <- 12;
-code.(70) <- 0;
-code.(71) <- 12;
-code.(72) <- 2;
-code.(73) <- 14;
-code.(74) <- 1;
-code.(75) <- 16;
-code.(76) <- 12;
+code.(40) <- 12;
+code.(41) <- 1;
+code.(42) <- 12;
+code.(43) <- 1;
+code.(44) <- 12;
+code.(45) <- 10;
+code.(46) <- 9;
+code.(47) <- 650;
+code.(48) <- 3;
+code.(49) <- 12;
+code.(50) <- 6;
+code.(51) <- 14;
+code.(52) <- 0;
+code.(53) <- 15;
+code.(54) <- 14;
+code.(55) <- 1;
+code.(56) <- 12;
+code.(57) <- 0;
+code.(58) <- 12;
+code.(59) <- 2;
+code.(60) <- 14;
+code.(61) <- 0;
+code.(62) <- 16;
+code.(63) <- 12;
+code.(64) <- 9;
+code.(65) <- 14;
+code.(66) <- 0;
+code.(67) <- 15;
+code.(68) <- 14;
+code.(69) <- 2;
+code.(70) <- 12;
+code.(71) <- 0;
+code.(72) <- 12;
+code.(73) <- 2;
+code.(74) <- 14;
+code.(75) <- 1;
+code.(76) <- 16;
 code.(77) <- 12;
-code.(78) <- 14;
-code.(79) <- 0;
-code.(80) <- 15;
-code.(81) <- 14;
-code.(82) <- 3;
-code.(83) <- 12;
-code.(84) <- 0;
-code.(85) <- 12;
-code.(86) <- 2;
-code.(87) <- 14;
-code.(88) <- 2;
-code.(89) <- 16;
-code.(90) <- 12;
-code.(91) <- 15;
-code.(92) <- 14;
-code.(93) <- 1;
-code.(94) <- 15;
-code.(95) <- 14;
-code.(96) <- 4;
-code.(97) <- 12;
-code.(98) <- 0;
-code.(99) <- 12;
-code.(100) <- 2;
-code.(101) <- 14;
-code.(102) <- 0;
-code.(103) <- 16;
-code.(104) <- 12;
-code.(105) <- 18;
-code.(106) <- 14;
-code.(107) <- 1;
-code.(108) <- 15;
-code.(109) <- 14;
-code.(110) <- 5;
-code.(111) <- 12;
-code.(112) <- 0;
-code.(113) <- 12;
-code.(114) <- 2;
-code.(115) <- 14;
-code.(116) <- 1;
-code.(117) <- 16;
-code.(118) <- 12;
-code.(119) <- 21;
-code.(120) <- 14;
-code.(121) <- 1;
-code.(122) <- 15;
-code.(123) <- 14;
-code.(124) <- 6;
-code.(125) <- 12;
-code.(126) <- 0;
-code.(127) <- 12;
-code.(128) <- 2;
-code.(129) <- 14;
-code.(130) <- 2;
-code.(131) <- 16;
-code.(132) <- 12;
-code.(133) <- 21;
-code.(134) <- 14;
-code.(135) <- 0;
-code.(136) <- 15;
-code.(137) <- 14;
-code.(138) <- 7;
-code.(139) <- 12;
-code.(140) <- 0;
-code.(141) <- 12;
-code.(142) <- 2;
-code.(143) <- 14;
-code.(144) <- 0;
-code.(145) <- 16;
-code.(146) <- 12;
-code.(147) <- 24;
-code.(148) <- 14;
-code.(149) <- 0;
-code.(150) <- 15;
-code.(151) <- 14;
-code.(152) <- 8;
-code.(153) <- 12;
-code.(154) <- 0;
-code.(155) <- 12;
-code.(156) <- 2;
-code.(157) <- 14;
-code.(158) <- 1;
-code.(159) <- 16;
-code.(160) <- 12;
-code.(161) <- 27;
-code.(162) <- 14;
-code.(163) <- 1;
-code.(164) <- 15;
-code.(165) <- 14;
-code.(166) <- 9;
-code.(167) <- 12;
-code.(168) <- 0;
-code.(169) <- 12;
-code.(170) <- 2;
-code.(171) <- 14;
-code.(172) <- 0;
-code.(173) <- 16;
-code.(174) <- 12;
-code.(175) <- 30;
-code.(176) <- 14;
-code.(177) <- 1;
-code.(178) <- 15;
-code.(179) <- 14;
-code.(180) <- 10;
-code.(181) <- 12;
-code.(182) <- 0;
-code.(183) <- 12;
-code.(184) <- 2;
-code.(185) <- 14;
-code.(186) <- 1;
-code.(187) <- 16;
-code.(188) <- 12;
-code.(189) <- 33;
-code.(190) <- 14;
-code.(191) <- 2;
-code.(192) <- 15;
-code.(193) <- 14;
-code.(194) <- 1;
-code.(195) <- 12;
-code.(196) <- 0;
-code.(197) <- 12;
-code.(198) <- 2;
-code.(199) <- 14;
-code.(200) <- 0;
-code.(201) <- 16;
-code.(202) <- 12;
-code.(203) <- 36;
-code.(204) <- 14;
-code.(205) <- 2;
-code.(206) <- 15;
-code.(207) <- 14;
-code.(208) <- 12;
+code.(78) <- 12;
+code.(79) <- 14;
+code.(80) <- 0;
+code.(81) <- 15;
+code.(82) <- 14;
+code.(83) <- 3;
+code.(84) <- 12;
+code.(85) <- 0;
+code.(86) <- 12;
+code.(87) <- 2;
+code.(88) <- 14;
+code.(89) <- 2;
+code.(90) <- 16;
+code.(91) <- 12;
+code.(92) <- 15;
+code.(93) <- 14;
+code.(94) <- 1;
+code.(95) <- 15;
+code.(96) <- 14;
+code.(97) <- 4;
+code.(98) <- 12;
+code.(99) <- 0;
+code.(100) <- 12;
+code.(101) <- 2;
+code.(102) <- 14;
+code.(103) <- 0;
+code.(104) <- 16;
+code.(105) <- 12;
+code.(106) <- 18;
+code.(107) <- 14;
+code.(108) <- 1;
+code.(109) <- 15;
+code.(110) <- 14;
+code.(111) <- 5;
+code.(112) <- 12;
+code.(113) <- 0;
+code.(114) <- 12;
+code.(115) <- 2;
+code.(116) <- 14;
+code.(117) <- 1;
+code.(118) <- 16;
+code.(119) <- 12;
+code.(120) <- 21;
+code.(121) <- 14;
+code.(122) <- 1;
+code.(123) <- 15;
+code.(124) <- 14;
+code.(125) <- 6;
+code.(126) <- 12;
+code.(127) <- 0;
+code.(128) <- 12;
+code.(129) <- 2;
+code.(130) <- 14;
+code.(131) <- 2;
+code.(132) <- 16;
+code.(133) <- 12;
+code.(134) <- 21;
+code.(135) <- 14;
+code.(136) <- 0;
+code.(137) <- 15;
+code.(138) <- 14;
+code.(139) <- 7;
+code.(140) <- 12;
+code.(141) <- 0;
+code.(142) <- 12;
+code.(143) <- 2;
+code.(144) <- 14;
+code.(145) <- 0;
+code.(146) <- 16;
+code.(147) <- 12;
+code.(148) <- 24;
+code.(149) <- 14;
+code.(150) <- 0;
+code.(151) <- 15;
+code.(152) <- 14;
+code.(153) <- 8;
+code.(154) <- 12;
+code.(155) <- 0;
+code.(156) <- 12;
+code.(157) <- 2;
+code.(158) <- 14;
+code.(159) <- 1;
+code.(160) <- 16;
+code.(161) <- 12;
+code.(162) <- 27;
+code.(163) <- 14;
+code.(164) <- 1;
+code.(165) <- 15;
+code.(166) <- 14;
+code.(167) <- 9;
+code.(168) <- 12;
+code.(169) <- 0;
+code.(170) <- 12;
+code.(171) <- 2;
+code.(172) <- 14;
+code.(173) <- 0;
+code.(174) <- 16;
+code.(175) <- 12;
+code.(176) <- 30;
+code.(177) <- 14;
+code.(178) <- 1;
+code.(179) <- 15;
+code.(180) <- 14;
+code.(181) <- 10;
+code.(182) <- 12;
+code.(183) <- 0;
+code.(184) <- 12;
+code.(185) <- 2;
+code.(186) <- 14;
+code.(187) <- 1;
+code.(188) <- 16;
+code.(189) <- 12;
+code.(190) <- 33;
+code.(191) <- 14;
+code.(192) <- 2;
+code.(193) <- 15;
+code.(194) <- 14;
+code.(195) <- 1;
+code.(196) <- 12;
+code.(197) <- 0;
+code.(198) <- 12;
+code.(199) <- 2;
+code.(200) <- 14;
+code.(201) <- 0;
+code.(202) <- 16;
+code.(203) <- 12;
+code.(204) <- 36;
+code.(205) <- 14;
+code.(206) <- 2;
+code.(207) <- 15;
+code.(208) <- 14;
 code.(209) <- 12;
-code.(210) <- 0;
-code.(211) <- 12;
-code.(212) <- 2;
-code.(213) <- 14;
-code.(214) <- 1;
-code.(215) <- 16;
-code.(216) <- 14;
-code.(217) <- 2;
-code.(218) <- 14;
-code.(219) <- 3;
-code.(220) <- 14;
-code.(221) <- 2;
-code.(222) <- 12;
-code.(223) <- 2;
-code.(224) <- 12;
-code.(225) <- 2;
-code.(226) <- 12;
-code.(227) <- 2;
-code.(228) <- 12;
-code.(229) <- 48;
-code.(230) <- 12;
-code.(231) <- 46;
-code.(232) <- 12;
-code.(233) <- 44;
-code.(234) <- 9;
-code.(235) <- 573;
-code.(236) <- 6;
-code.(237) <- 12;
-code.(238) <- 40;
-code.(239) <- 14;
-code.(240) <- 0;
-code.(241) <- 15;
-code.(242) <- 12;
-code.(243) <- 0;
-code.(244) <- 14;
-code.(245) <- 0;
-code.(246) <- 15;
-code.(247) <- 12;
-code.(248) <- 42;
-code.(249) <- 14;
-code.(250) <- 0;
-code.(251) <- 15;
-code.(252) <- 12;
-code.(253) <- 0;
-code.(254) <- 14;
-code.(255) <- 1;
-code.(256) <- 15;
-code.(257) <- 12;
-code.(258) <- 2;
-code.(259) <- 12;
-code.(260) <- 1;
+code.(210) <- 12;
+code.(211) <- 0;
+code.(212) <- 12;
+code.(213) <- 2;
+code.(214) <- 14;
+code.(215) <- 1;
+code.(216) <- 16;
+code.(217) <- 14;
+code.(218) <- 2;
+code.(219) <- 14;
+code.(220) <- 3;
+code.(221) <- 14;
+code.(222) <- 2;
+code.(223) <- 12;
+code.(224) <- 2;
+code.(225) <- 12;
+code.(226) <- 2;
+code.(227) <- 12;
+code.(228) <- 2;
+code.(229) <- 12;
+code.(230) <- 48;
+code.(231) <- 12;
+code.(232) <- 46;
+code.(233) <- 12;
+code.(234) <- 44;
+code.(235) <- 9;
+code.(236) <- 578;
+code.(237) <- 6;
+code.(238) <- 12;
+code.(239) <- 40;
+code.(240) <- 14;
+code.(241) <- 0;
+code.(242) <- 15;
+code.(243) <- 12;
+code.(244) <- 0;
+code.(245) <- 14;
+code.(246) <- 0;
+code.(247) <- 15;
+code.(248) <- 12;
+code.(249) <- 42;
+code.(250) <- 14;
+code.(251) <- 0;
+code.(252) <- 15;
+code.(253) <- 12;
+code.(254) <- 0;
+code.(255) <- 14;
+code.(256) <- 1;
+code.(257) <- 15;
+code.(258) <- 12;
+code.(259) <- 2;
+code.(260) <- 12;
 code.(261) <- 1;
-code.(262) <- 12;
-code.(263) <- 45;
-code.(264) <- 14;
-code.(265) <- 1;
-code.(266) <- 15;
-code.(267) <- 12;
-code.(268) <- 0;
-code.(269) <- 14;
-code.(270) <- 0;
-code.(271) <- 15;
-code.(272) <- 12;
-code.(273) <- 2;
-code.(274) <- 12;
-code.(275) <- 1;
+code.(262) <- 1;
+code.(263) <- 12;
+code.(264) <- 45;
+code.(265) <- 14;
+code.(266) <- 1;
+code.(267) <- 15;
+code.(268) <- 12;
+code.(269) <- 0;
+code.(270) <- 14;
+code.(271) <- 0;
+code.(272) <- 15;
+code.(273) <- 12;
+code.(274) <- 2;
+code.(275) <- 12;
 code.(276) <- 1;
-code.(277) <- 12;
-code.(278) <- 48;
-code.(279) <- 14;
-code.(280) <- 1;
-code.(281) <- 15;
-code.(282) <- 12;
-code.(283) <- 0;
-code.(284) <- 14;
-code.(285) <- 1;
-code.(286) <- 15;
-code.(287) <- 12;
-code.(288) <- 2;
-code.(289) <- 12;
-code.(290) <- 1;
+code.(277) <- 1;
+code.(278) <- 12;
+code.(279) <- 48;
+code.(280) <- 14;
+code.(281) <- 1;
+code.(282) <- 15;
+code.(283) <- 12;
+code.(284) <- 0;
+code.(285) <- 14;
+code.(286) <- 1;
+code.(287) <- 15;
+code.(288) <- 12;
+code.(289) <- 2;
+code.(290) <- 12;
 code.(291) <- 1;
-code.(292) <- 12;
-code.(293) <- 0;
-code.(294) <- 19;
-code.(295) <- 13;
+code.(292) <- 1;
+code.(293) <- 12;
+code.(294) <- 0;
+code.(295) <- 19;
 code.(296) <- 13;
 code.(297) <- 13;
 code.(298) <- 13;
@@ -563,94 +507,94 @@ code.(354) <- 13;
 code.(355) <- 13;
 code.(356) <- 13;
 code.(357) <- 13;
-code.(358) <- 11;
-code.(359) <- 12;
-code.(360) <- 5;
-code.(361) <- 14;
-code.(362) <- 0;
-code.(363) <- 5;
-code.(364) <- 7;
-code.(365) <- 372;
-code.(366) <- 14;
-code.(367) <- 1;
+code.(358) <- 13;
+code.(359) <- 11;
+code.(360) <- 21;
+code.(361) <- 12;
+code.(362) <- 6;
+code.(363) <- 14;
+code.(364) <- 0;
+code.(365) <- 5;
+code.(366) <- 7;
+code.(367) <- 374;
 code.(368) <- 14;
-code.(369) <- 0;
-code.(370) <- 7;
-code.(371) <- 455;
-code.(372) <- 12;
-code.(373) <- 3;
+code.(369) <- 1;
+code.(370) <- 14;
+code.(371) <- 0;
+code.(372) <- 7;
+code.(373) <- 457;
 code.(374) <- 12;
-code.(375) <- 7;
-code.(376) <- 15;
-code.(377) <- 12;
-code.(378) <- 0;
+code.(375) <- 4;
+code.(376) <- 12;
+code.(377) <- 8;
+code.(378) <- 15;
 code.(379) <- 12;
-code.(380) <- 7;
-code.(381) <- 15;
-code.(382) <- 12;
-code.(383) <- 4;
+code.(380) <- 0;
+code.(381) <- 12;
+code.(382) <- 8;
+code.(383) <- 15;
 code.(384) <- 12;
-code.(385) <- 8;
-code.(386) <- 15;
-code.(387) <- 12;
-code.(388) <- 0;
+code.(385) <- 5;
+code.(386) <- 12;
+code.(387) <- 9;
+code.(388) <- 15;
 code.(389) <- 12;
-code.(390) <- 8;
-code.(391) <- 15;
-code.(392) <- 12;
-code.(393) <- 2;
+code.(390) <- 0;
+code.(391) <- 12;
+code.(392) <- 9;
+code.(393) <- 15;
 code.(394) <- 12;
-code.(395) <- 1;
-code.(396) <- 3;
-code.(397) <- 12;
-code.(398) <- 6;
+code.(395) <- 2;
+code.(396) <- 12;
+code.(397) <- 1;
+code.(398) <- 3;
 code.(399) <- 12;
-code.(400) <- 12;
-code.(401) <- 15;
-code.(402) <- 12;
-code.(403) <- 7;
+code.(400) <- 7;
+code.(401) <- 12;
+code.(402) <- 13;
+code.(403) <- 15;
 code.(404) <- 12;
-code.(405) <- 13;
-code.(406) <- 15;
-code.(407) <- 12;
-code.(408) <- 0;
+code.(405) <- 8;
+code.(406) <- 12;
+code.(407) <- 14;
+code.(408) <- 15;
 code.(409) <- 12;
-code.(410) <- 12;
-code.(411) <- 15;
-code.(412) <- 12;
-code.(413) <- 0;
+code.(410) <- 0;
+code.(411) <- 12;
+code.(412) <- 13;
+code.(413) <- 15;
 code.(414) <- 12;
-code.(415) <- 4;
-code.(416) <- 1;
-code.(417) <- 12;
-code.(418) <- 0;
+code.(415) <- 0;
+code.(416) <- 12;
+code.(417) <- 4;
+code.(418) <- 1;
 code.(419) <- 12;
-code.(420) <- 4;
+code.(420) <- 0;
 code.(421) <- 12;
-code.(422) <- 15;
-code.(423) <- 16;
-code.(424) <- 12;
-code.(425) <- 15;
-code.(426) <- 14;
-code.(427) <- 1;
-code.(428) <- 2;
-code.(429) <- 12;
-code.(430) <- 17;
+code.(422) <- 4;
+code.(423) <- 12;
+code.(424) <- 16;
+code.(425) <- 16;
+code.(426) <- 12;
+code.(427) <- 16;
+code.(428) <- 14;
+code.(429) <- 1;
+code.(430) <- 2;
 code.(431) <- 12;
-code.(432) <- 1;
+code.(432) <- 18;
 code.(433) <- 12;
-code.(434) <- 17;
+code.(434) <- 1;
 code.(435) <- 12;
-code.(436) <- 17;
+code.(436) <- 18;
 code.(437) <- 12;
-code.(438) <- 17;
+code.(438) <- 18;
 code.(439) <- 12;
-code.(440) <- 17;
-code.(441) <- 9;
-code.(442) <- 359;
-code.(443) <- 6;
-code.(444) <- 13;
-code.(445) <- 13;
+code.(440) <- 18;
+code.(441) <- 12;
+code.(442) <- 18;
+code.(443) <- 9;
+code.(444) <- 361;
+code.(445) <- 6;
 code.(446) <- 13;
 code.(447) <- 13;
 code.(448) <- 13;
@@ -660,292 +604,227 @@ code.(451) <- 13;
 code.(452) <- 13;
 code.(453) <- 13;
 code.(454) <- 13;
-code.(455) <- 10;
-code.(456) <- 6;
-code.(457) <- 12;
-code.(458) <- 4;
-code.(459) <- 14;
-code.(460) <- 0;
+code.(455) <- 13;
+code.(456) <- 13;
+code.(457) <- 10;
+code.(458) <- 6;
+code.(459) <- 21;
+code.(460) <- 12;
 code.(461) <- 5;
-code.(462) <- 7;
-code.(463) <- 470;
-code.(464) <- 14;
-code.(465) <- 1;
-code.(466) <- 14;
-code.(467) <- 0;
-code.(468) <- 7;
-code.(469) <- 513;
-code.(470) <- 12;
-code.(471) <- 5;
-code.(472) <- 14;
-code.(473) <- 1;
-code.(474) <- 2;
-code.(475) <- 12;
-code.(476) <- 7;
-code.(477) <- 12;
-code.(478) <- 1;
-code.(479) <- 12;
-code.(480) <- 7;
-code.(481) <- 12;
-code.(482) <- 7;
-code.(483) <- 12;
-code.(484) <- 7;
-code.(485) <- 12;
-code.(486) <- 7;
-code.(487) <- 9;
-code.(488) <- 359;
-code.(489) <- 6;
-code.(490) <- 12;
-code.(491) <- 6;
-code.(492) <- 14;
-code.(493) <- 1;
-code.(494) <- 2;
-code.(495) <- 12;
-code.(496) <- 9;
-code.(497) <- 12;
-code.(498) <- 9;
-code.(499) <- 12;
-code.(500) <- 2;
-code.(501) <- 12;
-code.(502) <- 9;
-code.(503) <- 12;
-code.(504) <- 9;
-code.(505) <- 12;
-code.(506) <- 9;
-code.(507) <- 9;
-code.(508) <- 457;
-code.(509) <- 6;
-code.(510) <- 13;
-code.(511) <- 13;
-code.(512) <- 13;
-code.(513) <- 10;
-code.(514) <- 6;
-code.(515) <- 12;
-code.(516) <- 6;
-code.(517) <- 14;
-code.(518) <- 0;
-code.(519) <- 5;
+code.(462) <- 14;
+code.(463) <- 0;
+code.(464) <- 5;
+code.(465) <- 7;
+code.(466) <- 473;
+code.(467) <- 14;
+code.(468) <- 1;
+code.(469) <- 14;
+code.(470) <- 0;
+code.(471) <- 7;
+code.(472) <- 516;
+code.(473) <- 12;
+code.(474) <- 6;
+code.(475) <- 14;
+code.(476) <- 1;
+code.(477) <- 2;
+code.(478) <- 12;
+code.(479) <- 8;
+code.(480) <- 12;
+code.(481) <- 1;
+code.(482) <- 12;
+code.(483) <- 8;
+code.(484) <- 12;
+code.(485) <- 8;
+code.(486) <- 12;
+code.(487) <- 8;
+code.(488) <- 12;
+code.(489) <- 8;
+code.(490) <- 9;
+code.(491) <- 361;
+code.(492) <- 6;
+code.(493) <- 12;
+code.(494) <- 7;
+code.(495) <- 14;
+code.(496) <- 1;
+code.(497) <- 2;
+code.(498) <- 12;
+code.(499) <- 10;
+code.(500) <- 12;
+code.(501) <- 10;
+code.(502) <- 12;
+code.(503) <- 2;
+code.(504) <- 12;
+code.(505) <- 10;
+code.(506) <- 12;
+code.(507) <- 10;
+code.(508) <- 12;
+code.(509) <- 10;
+code.(510) <- 9;
+code.(511) <- 460;
+code.(512) <- 6;
+code.(513) <- 13;
+code.(514) <- 13;
+code.(515) <- 13;
+code.(516) <- 10;
+code.(517) <- 6;
+code.(518) <- 21;
+code.(519) <- 12;
 code.(520) <- 7;
-code.(521) <- 528;
-code.(522) <- 14;
-code.(523) <- 0;
-code.(524) <- 14;
-code.(525) <- 0;
-code.(526) <- 7;
-code.(527) <- 571;
-code.(528) <- 12;
-code.(529) <- 4;
-code.(530) <- 14;
-code.(531) <- 1;
-code.(532) <- 2;
-code.(533) <- 12;
-code.(534) <- 7;
-code.(535) <- 12;
-code.(536) <- 7;
+code.(521) <- 14;
+code.(522) <- 0;
+code.(523) <- 5;
+code.(524) <- 7;
+code.(525) <- 532;
+code.(526) <- 14;
+code.(527) <- 0;
+code.(528) <- 14;
+code.(529) <- 0;
+code.(530) <- 7;
+code.(531) <- 575;
+code.(532) <- 12;
+code.(533) <- 5;
+code.(534) <- 14;
+code.(535) <- 1;
+code.(536) <- 2;
 code.(537) <- 12;
-code.(538) <- 2;
+code.(538) <- 8;
 code.(539) <- 12;
-code.(540) <- 7;
+code.(540) <- 8;
 code.(541) <- 12;
-code.(542) <- 7;
+code.(542) <- 2;
 code.(543) <- 12;
-code.(544) <- 7;
-code.(545) <- 9;
-code.(546) <- 457;
-code.(547) <- 6;
-code.(548) <- 12;
-code.(549) <- 8;
-code.(550) <- 14;
-code.(551) <- 1;
-code.(552) <- 2;
-code.(553) <- 12;
-code.(554) <- 0;
-code.(555) <- 12;
-code.(556) <- 9;
+code.(544) <- 8;
+code.(545) <- 12;
+code.(546) <- 8;
+code.(547) <- 12;
+code.(548) <- 8;
+code.(549) <- 9;
+code.(550) <- 460;
+code.(551) <- 6;
+code.(552) <- 12;
+code.(553) <- 9;
+code.(554) <- 14;
+code.(555) <- 1;
+code.(556) <- 2;
 code.(557) <- 12;
-code.(558) <- 9;
+code.(558) <- 0;
 code.(559) <- 12;
-code.(560) <- 9;
+code.(560) <- 10;
 code.(561) <- 12;
-code.(562) <- 9;
+code.(562) <- 10;
 code.(563) <- 12;
-code.(564) <- 9;
-code.(565) <- 9;
-code.(566) <- 515;
-code.(567) <- 6;
-code.(568) <- 13;
-code.(569) <- 13;
-code.(570) <- 13;
-code.(571) <- 10;
-code.(572) <- 6;
-code.(573) <- 12;
-code.(574) <- 6;
-code.(575) <- 14;
-code.(576) <- 1;
-code.(577) <- 2;
+code.(564) <- 10;
+code.(565) <- 12;
+code.(566) <- 10;
+code.(567) <- 12;
+code.(568) <- 10;
+code.(569) <- 9;
+code.(570) <- 519;
+code.(571) <- 6;
+code.(572) <- 13;
+code.(573) <- 13;
+code.(574) <- 13;
+code.(575) <- 10;
+code.(576) <- 6;
+code.(577) <- 21;
 code.(578) <- 12;
-code.(579) <- 0;
-code.(580) <- 12;
-code.(581) <- 7;
-code.(582) <- 12;
-code.(583) <- 7;
-code.(584) <- 12;
-code.(585) <- 7;
-code.(586) <- 12;
-code.(587) <- 7;
-code.(588) <- 12;
-code.(589) <- 7;
-code.(590) <- 9;
-code.(591) <- 515;
-code.(592) <- 6;
-code.(593) <- 13;
-code.(594) <- 10;
-code.(595) <- 6;
-code.(596) <- 12;
-code.(597) <- 3;
-code.(598) <- 14;
-code.(599) <- 0;
-code.(600) <- 5;
-code.(601) <- 7;
-code.(602) <- 609;
-code.(603) <- 14;
-code.(604) <- 1;
-code.(605) <- 14;
-code.(606) <- 0;
+code.(579) <- 7;
+code.(580) <- 14;
+code.(581) <- 1;
+code.(582) <- 2;
+code.(583) <- 12;
+code.(584) <- 0;
+code.(585) <- 12;
+code.(586) <- 8;
+code.(587) <- 12;
+code.(588) <- 8;
+code.(589) <- 12;
+code.(590) <- 8;
+code.(591) <- 12;
+code.(592) <- 8;
+code.(593) <- 12;
+code.(594) <- 8;
+code.(595) <- 9;
+code.(596) <- 519;
+code.(597) <- 6;
+code.(598) <- 13;
+code.(599) <- 10;
+code.(600) <- 6;
+code.(601) <- 21;
+code.(602) <- 12;
+code.(603) <- 4;
+code.(604) <- 14;
+code.(605) <- 0;
+code.(606) <- 5;
 code.(607) <- 7;
-code.(608) <- 641;
+code.(608) <- 615;
 code.(609) <- 14;
-code.(610) <- 0;
-code.(611) <- 12;
-code.(612) <- 3;
-code.(613) <- 12;
-code.(614) <- 1;
-code.(615) <- 17;
-code.(616) <- 12;
-code.(617) <- 0;
-code.(618) <- 12;
-code.(619) <- 4;
-code.(620) <- 12;
-code.(621) <- 7;
-code.(622) <- 16;
-code.(623) <- 12;
-code.(624) <- 6;
-code.(625) <- 14;
-code.(626) <- 1;
-code.(627) <- 2;
-code.(628) <- 12;
-code.(629) <- 0;
-code.(630) <- 12;
-code.(631) <- 7;
-code.(632) <- 12;
-code.(633) <- 7;
-code.(634) <- 9;
-code.(635) <- 596;
-code.(636) <- 3;
-code.(637) <- 13;
-code.(638) <- 13;
-code.(639) <- 13;
-code.(640) <- 13;
-code.(641) <- 10;
+code.(610) <- 1;
+code.(611) <- 14;
+code.(612) <- 0;
+code.(613) <- 7;
+code.(614) <- 647;
+code.(615) <- 14;
+code.(616) <- 0;
+code.(617) <- 12;
+code.(618) <- 4;
+code.(619) <- 12;
+code.(620) <- 1;
+code.(621) <- 17;
+code.(622) <- 12;
+code.(623) <- 0;
+code.(624) <- 12;
+code.(625) <- 5;
+code.(626) <- 12;
+code.(627) <- 8;
+code.(628) <- 16;
+code.(629) <- 12;
+code.(630) <- 7;
+code.(631) <- 14;
+code.(632) <- 1;
+code.(633) <- 2;
+code.(634) <- 12;
+code.(635) <- 0;
+code.(636) <- 12;
+code.(637) <- 8;
+code.(638) <- 12;
+code.(639) <- 8;
+code.(640) <- 9;
+code.(641) <- 602;
 code.(642) <- 3;
-code.(643) <- 12;
-code.(644) <- 3;
-code.(645) <- 12;
-code.(646) <- 2;
-code.(647) <- 17;
-code.(648) <- 12;
-code.(649) <- 4;
-code.(650) <- 14;
-code.(651) <- 1;
-code.(652) <- 2;
-code.(653) <- 12;
-code.(654) <- 0;
+code.(643) <- 13;
+code.(644) <- 13;
+code.(645) <- 13;
+code.(646) <- 13;
+code.(647) <- 10;
+code.(648) <- 3;
+code.(649) <- 21;
+code.(650) <- 12;
+code.(651) <- 4;
+code.(652) <- 12;
+code.(653) <- 3;
+code.(654) <- 17;
 code.(655) <- 12;
 code.(656) <- 5;
-code.(657) <- 12;
-code.(658) <- 3;
-code.(659) <- 9;
-code.(660) <- 596;
-code.(661) <- 3;
+code.(657) <- 14;
+code.(658) <- 1;
+code.(659) <- 2;
+code.(660) <- 12;
+code.(661) <- 0;
 code.(662) <- 12;
-code.(663) <- 2;
-code.(664) <- 13;
-code.(665) <- 13;
-code.(666) <- 13;
-code.(667) <- 10;
+code.(663) <- 6;
+code.(664) <- 12;
+code.(665) <- 3;
+code.(666) <- 9;
+code.(667) <- 602;
 code.(668) <- 3;
+code.(669) <- 12;
+code.(670) <- 2;
+code.(671) <- 13;
+code.(672) <- 13;
+code.(673) <- 13;
+code.(674) <- 10;
+code.(675) <- 3;
 (* gcd *)
-(*
-code.(0) <- 14;
-code.(1) <- 21600;
-code.(2) <- 14;
-code.(3) <- 337500;
-code.(4) <- 12;
-code.(5) <- 1;
-code.(6) <- 12;
-code.(7) <- 1;
-code.(8) <- 9;
-code.(9) <- 18;
-code.(10) <- 2;
-code.(11) <- 12;
-code.(12) <- 0;
-code.(13) <- 19;
-code.(14) <- 13;
-code.(15) <- 13;
-code.(16) <- 13;
-code.(17) <- 11;
-code.(18) <- 12;
-code.(19) <- 2;
-code.(20) <- 14;
-code.(21) <- 0;
-code.(22) <- 6;
-code.(23) <- 7;
-code.(24) <- 31;
-code.(25) <- 12;
-code.(26) <- 1;
-code.(27) <- 14;
-code.(28) <- 0;
-code.(29) <- 7;
-code.(30) <- 68;
-code.(31) <- 12;
-code.(32) <- 2;
-code.(33) <- 12;
-code.(34) <- 2;
-code.(35) <- 5;
-code.(36) <- 7;
-code.(37) <- 55;
-code.(38) <- 12;
-code.(39) <- 1;
-code.(40) <- 12;
-code.(41) <- 3;
-code.(42) <- 2;
-code.(43) <- 12;
-code.(44) <- 3;
-code.(45) <- 12;
-code.(46) <- 1;
-code.(47) <- 9;
-code.(48) <- 18;
-code.(49) <- 2;
-code.(50) <- 13;
-code.(51) <- 14;
-code.(52) <- 0;
-code.(53) <- 7;
-code.(54) <- 68;
-code.(55) <- 12;
-code.(56) <- 2;
-code.(57) <- 12;
-code.(58) <- 2;
-code.(59) <- 2;
-code.(60) <- 12;
-code.(61) <- 2;
-code.(62) <- 12;
-code.(63) <- 1;
-code.(64) <- 9;
-code.(65) <- 18;
-code.(66) <- 2;
-code.(67) <- 13;
-code.(68) <- 10;
-code.(69) <- 2;
-*)
 let _ = (interp stk 1 code 0) in
 ()
