@@ -134,6 +134,6 @@ let rec interp stack sp bytecode pc =
     interp stack (sp + 1) bytecode (pc + 1)
   else
     -1000 in
-let stk = Array.make 10 0 in
-let code = Array.make 10 10 in
-print_int (interp stk 0 code 0)
+let stk = Array.make 10 1 in
+let code = Array.make 1 11 in
+print_int (interp stk 1 code 0)
