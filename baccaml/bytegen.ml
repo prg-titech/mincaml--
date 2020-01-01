@@ -2,7 +2,7 @@ open MinCaml
 
 module B = BacCaml
 
-type backend = Virtual | Bytecode | Interp | Nothing
+type backend = Virtual | Bytecode | PPBytecode | Interp | Nothing
 
 type show_insts_map = [`True | `False]
 
@@ -39,7 +39,8 @@ let rec lexbuf oc l =
   |> fun p -> begin
     match !backend_type with
     | Virtual -> p |> Emit.f |> Array.to_list |> Insts.Printer.pp_insts
-    | Bytecode -> p |> Emit.f |> Insts.Printer.pp_bytecode oc
+    | PPBytecode -> p |> Emit.f |> Insts.Printer.pp_bytecode oc
+    | Bytecode -> p |> Emit.f |> Insts.Printer.write_bytecode oc
     | Interp -> p |> Emit.f |> VM.run_asm |> ignore
     | Nothing -> ()
   end
@@ -61,7 +62,7 @@ let () =
         ("-no-sh", Arg.Unit (fun _ -> Config.(sh_flg := `False)), "disable stack hybridization");
         ("-virtual", Arg.Unit (fun _ -> backend_type := Virtual), "emit MinCaml IR");
         ("-insts", Arg.Unit (fun _ -> show_insts_map_type := `True), "show instruction map");
-        ("-bytes", Arg.Unit (fun _ -> backend_type := Bytecode), "emit bytecode for BacCaml");
+        ("-pp", Arg.Unit (fun _ -> backend_type := PPBytecode), "emit bytecode for BacCaml");
         ("-interp", Arg.Unit (fun _ -> backend_type := Interp), "run as interpreter") ])
     (fun s -> files := !files @ [s])
     ("usage: %s [-virtual] [-insts] [-bytes] [-interp]");

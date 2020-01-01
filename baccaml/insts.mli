@@ -35,4 +35,5 @@ module Printer : sig
   val pp_inst_map : unit -> unit
   val pp_insts : ?i:int -> inst list -> unit
   val pp_bytecode : out_channel -> inst array -> unit
+  val write_bytecode : out_channel -> inst array -> unit
 end

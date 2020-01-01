@@ -111,4 +111,14 @@ module Printer = struct
          Printf.fprintf oc "code.(%d) <- %d;\n" i (index_of instr));
       i + 1
     end 0 |> ignore
+
+  let write_bytecode oc insts =
+    Printf.fprintf oc "%d\n" (Array.length insts);
+    insts |> Array.map begin fun instr ->
+      (match instr with
+       | Literal j ->
+         Printf.fprintf oc "%d\n" j
+       | _ ->
+         Printf.fprintf oc "%d\n" (index_of instr));
+    end |> ignore
 end
