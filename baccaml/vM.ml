@@ -1,10 +1,9 @@
 open Printf
 open MinCaml
+open Config
 open Insts
 
 let max_stack_depth = 1000000
-
-let debug_flg = ref false
 
 let index_of element array =
   fst(List.find (fun (_,v) -> v=element)
@@ -125,7 +124,7 @@ let checkpoint =
   else fun () -> ()
 
 let debug pc inst stack =
-  if !debug_flg then
+  if !vm_debug_flg = `True then
     Printf.printf "%d %s %s\n" (pc-1) (show_inst inst) (dump_stack stack)
   else ()
 
@@ -187,8 +186,8 @@ let rec interp code pc stack =
       let _,pc = fetch code pc  in
       let stack = Emit.(
           match !sh_flg with
-          | True -> push stack (Int' (100))
-          | False -> stack) in
+          | `True -> push stack (Int' (100))
+          | `False -> stack) in
       let stack = push stack (value_of_int pc) in (* save return address *)
       (* (let (sp,s)=stack in
        *  if 2<sp then
@@ -204,8 +203,8 @@ let rec interp code pc stack =
       let pc,stack = pop stack in (* return address *)
       let _,stack = Emit.(
           match !sh_flg with
-          | True -> pop stack
-          | False -> Int' (0), stack) in
+          | `True -> pop stack
+          | `False -> Int' (0), stack) in
       let stack = drop stack n in (* delete arguments *)
       let stack = push stack v in (* restore return value *)
       (* Printf.printf "%d RET with %d to %d\n" pc0 v pc; *)
