@@ -1,4 +1,5 @@
 (* -*- mode: tuareg -*- *)
+(* vim: set syntax=ocaml: *)
 
 let rec frame_reset stack old_base new_base ret n i =
   if n = i then (stack.(old_base + n) <- ret; old_base + n + 1)
