@@ -53,17 +53,13 @@ let rec shuffle sw xys =
 
 type dest = Tail | NonTail of Id.t
 
-(* 末尾かどうかを表すデータ型 (caml2html: emit_dest) *)
 let rec g oc = function
-  (* 命令列のアセンブリ生成 (caml2html: emit_g) *)
   | dest, Ans exp -> g' oc (dest, exp)
   | dest, Let ((x, t), exp, e) ->
       g' oc (NonTail x, exp) ;
       g oc (dest, e)
 
 and g' oc = function
-  (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
-  (* 末尾でなかったら計算結果をdestにセット (caml2html: emit_nontail) *)
   | NonTail _, Nop -> ()
   | NonTail x, Set i -> Printf.fprintf oc "\tmovl\t$%d, %s\n" i x
   | NonTail x, SetL (Id.L y) -> Printf.fprintf oc "\tmovl\t$%s, %s\n" y x
@@ -83,6 +79,11 @@ and g' oc = function
       else (
         if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x ;
         Printf.fprintf oc "\tsubl\t%s, %s\n" (pp_id_or_imm z') x )
+  | NonTail x, Mul (y, z') ->
+      if V x = z' then Printf.fprintf oc "\timul\t%s, %s\n" y x
+      else (
+        if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x ;
+        Printf.fprintf oc "\timul\t%s, %s\n" (pp_id_or_imm z') x )
   | NonTail x, Ld (y, V z, i) ->
       Printf.fprintf oc "\tmovl\t(%s,%s,%d), %s\n" y z i x
   | NonTail x, Ld (y, C j, i) ->
@@ -157,7 +158,7 @@ and g' oc = function
   | Tail, ((Nop | St _ | StDF _ | Comment _ | Save _) as exp) ->
       g' oc (NonTail (Id.gentmp Type.Unit), exp) ;
       Printf.fprintf oc "\tret\n"
-  | Tail, ((Set _ | SetL _ | Mov _ | Neg _ | Add _ | Sub _ | Ld _) as exp) ->
+  | Tail, ((Set _ | SetL _ | Mov _ | Neg _ | Add _ | Mul _ | Sub _ | Ld _) as exp) ->
       g' oc (NonTail regs.(0), exp) ;
       Printf.fprintf oc "\tret\n"
   | ( Tail

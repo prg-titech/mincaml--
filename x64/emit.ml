@@ -73,6 +73,12 @@ and g' oc = function (* 各命令のアセンブリ生成 (caml2html: emit_gprime) *)
       else
         (if x <> y then Printf.fprintf oc "\tmovq\t%s, %s\n" y x;
          Printf.fprintf oc "\tsubq\t%s, %s\n" (pp_id_or_imm z') x)
+  | NonTail(x), Mul(y, z') ->
+      if V x = z' then
+        Printf.fprintf oc "\tmul\t%s, %s\n" y x
+      else
+        (if x <> y then Printf.fprintf oc "\tmovq\t%s, %s\n" y x;
+         Printf.fprintf oc "\tmul\t%s, %s\n" (pp_id_or_imm z') x)
   | NonTail(x), Ld(y, V(z), i) -> Printf.fprintf oc "\tmovq\t(%s,%s,%d), %s\n" y z i x
   | NonTail(x), Ld(y, C(j), i) -> Printf.fprintf oc "\tmovq\t%d(%s), %s\n" (j * i) y x
   | NonTail(_), St(x, y, V(z), i) -> Printf.fprintf oc "\tmovq\t%s, (%s,%s,%d)\n" x y z i
