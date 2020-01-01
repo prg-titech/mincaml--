@@ -233,10 +233,8 @@ let rec interp code pc stack =
       interp code pc stack
     | GET ->
       let n,stack = pop stack in
-      let n = int_of_value n in
       let arr,stack = pop stack in
-      let arr = array_of_value arr in
-      let stack = push stack (arr.(n)) in
+      let stack = push stack ((array_of_value arr).(int_of_value n)) in
       interp code pc stack
     | PUT ->
       let i,stack = pop stack in
