@@ -5,6 +5,10 @@ module List = ListLabels
 
 exception Error of string
 
+type stack_hybridized = True | False
+
+let sh_flg = ref False
+
 (* generate a unique label id *)
 let gen_label, reset =
   let counter = ref 0 in
@@ -149,6 +153,7 @@ let resolve_labels instrs =
 
 
 let compile_fun_body fenv name arity exp env =
+  let env = if !sh_flg = True then shift_env env else env in
   [METHOD_ENTRY; Ldef name] @
   (compile_t env exp) @
   (if name = "main" then [HALT] else [RET; Literal arity])

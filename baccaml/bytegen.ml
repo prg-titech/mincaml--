@@ -31,7 +31,7 @@ let rec lexbuf oc l =
   |> Simm.f
   |> fun p -> begin
     match !backend_type with
-    | Virtual -> p |> Asm.show_prog |> print_endline
+    | Virtual -> p |> Emit.f |> Array.to_list |> Insts.Printer.pp_insts
     | Bytecode -> p |> Emit.f |> Insts.Printer.pp_bytecode oc
     | Interp -> p |> Emit.f |> VM.run_asm |> ignore
     | Nothing -> ()
@@ -50,6 +50,7 @@ let () =
   let files = ref [] in
   Arg.parse
     [ ("-debug", Arg.Unit (fun _ -> debug := True), "run as debug mode");
+      ("-sh", Arg.Unit (fun _ -> Emit.(sh_flg := True)), "enable stack hybridization");
       ("-virtual", Arg.Unit (fun _ -> backend_type := Virtual), "emit MinCaml IR");
       ("-insts", Arg.Unit (fun _ -> show_insts_map_type := True), "show instruction map");
       ("-bytes", Arg.Unit (fun _ -> backend_type := Bytecode), "emit bytecode for BacCaml");

@@ -185,6 +185,10 @@ let rec interp code pc stack =
       (* calling a function will create a new operand stack and lvars  *)
       let addr,pc = fetch code pc in
       let _,pc = fetch code pc  in
+      let stack = Emit.(
+          match !sh_flg with
+          | True -> push stack (Int' (100))
+          | False -> stack) in
       let stack = push stack (value_of_int pc) in (* save return address *)
       (* (let (sp,s)=stack in
        *  if 2<sp then
@@ -198,6 +202,10 @@ let rec interp code pc stack =
       let n,pc = fetch code pc in
       let v,stack = pop stack in (* return value *)
       let pc,stack = pop stack in (* return address *)
+      let _,stack = Emit.(
+          match !sh_flg with
+          | True -> pop stack
+          | False -> Int' (0), stack) in
       let stack = drop stack n in (* delete arguments *)
       let stack = push stack v in (* restore return value *)
       (* Printf.printf "%d RET with %d to %d\n" pc0 v pc; *)
