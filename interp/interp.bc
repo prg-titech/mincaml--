@@ -20,7 +20,6 @@ let rec push stack sp v = stack.(sp) <- v in
 
 let rec interp stack sp bytecode pc =
   let instr = bytecode.(pc) in
-  print_debug pc instr sp;
   if instr = 0 then               (* UNIT *)
     interp stack sp bytecode (pc + 1)
   else if instr = 1 then          (* ADD *)
@@ -205,6 +204,7 @@ code.(54) <- 13;
 code.(55) <- 10;
 code.(56) <- 1;
 *)
+(* matmul *)
 code.(0) <- 14;
 code.(1) <- 0;
 code.(2) <- 14;
@@ -874,5 +874,78 @@ code.(665) <- 13;
 code.(666) <- 13;
 code.(667) <- 10;
 code.(668) <- 3;
+(* gcd *)
+(*
+code.(0) <- 14;
+code.(1) <- 21600;
+code.(2) <- 14;
+code.(3) <- 337500;
+code.(4) <- 12;
+code.(5) <- 1;
+code.(6) <- 12;
+code.(7) <- 1;
+code.(8) <- 9;
+code.(9) <- 18;
+code.(10) <- 2;
+code.(11) <- 12;
+code.(12) <- 0;
+code.(13) <- 19;
+code.(14) <- 13;
+code.(15) <- 13;
+code.(16) <- 13;
+code.(17) <- 11;
+code.(18) <- 12;
+code.(19) <- 2;
+code.(20) <- 14;
+code.(21) <- 0;
+code.(22) <- 6;
+code.(23) <- 7;
+code.(24) <- 31;
+code.(25) <- 12;
+code.(26) <- 1;
+code.(27) <- 14;
+code.(28) <- 0;
+code.(29) <- 7;
+code.(30) <- 68;
+code.(31) <- 12;
+code.(32) <- 2;
+code.(33) <- 12;
+code.(34) <- 2;
+code.(35) <- 5;
+code.(36) <- 7;
+code.(37) <- 55;
+code.(38) <- 12;
+code.(39) <- 1;
+code.(40) <- 12;
+code.(41) <- 3;
+code.(42) <- 2;
+code.(43) <- 12;
+code.(44) <- 3;
+code.(45) <- 12;
+code.(46) <- 1;
+code.(47) <- 9;
+code.(48) <- 18;
+code.(49) <- 2;
+code.(50) <- 13;
+code.(51) <- 14;
+code.(52) <- 0;
+code.(53) <- 7;
+code.(54) <- 68;
+code.(55) <- 12;
+code.(56) <- 2;
+code.(57) <- 12;
+code.(58) <- 2;
+code.(59) <- 2;
+code.(60) <- 12;
+code.(61) <- 2;
+code.(62) <- 12;
+code.(63) <- 1;
+code.(64) <- 9;
+code.(65) <- 18;
+code.(66) <- 2;
+code.(67) <- 13;
+code.(68) <- 10;
+code.(69) <- 2;
+*)
 let _ = (interp stk 1 code 0) in
 ()
