@@ -89,7 +89,6 @@ let () =
     ^ Printf.sprintf
         "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..."
         Sys.argv.(0) ) ;
-  with_flag debug ~tru:(fun _ -> BacCaml.VM.debug_flg := true) ~fls:(fun _ -> ());
   List.iter
     (fun f -> main f)
     !files
