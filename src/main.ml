@@ -9,8 +9,6 @@ let backend_type = ref MinCaml
 
 let debug = ref false
 
-let baccaml_instr_info = ref false
-
 let ast_dump = ref false
 
 let with_flag flag ~tru:f ~fls:g =
@@ -79,9 +77,6 @@ let () =
     ; ("-debug"
       , Arg.Unit (fun _ -> debug := true)
       , "enable debug mode")
-    ; ( "-bc-inst"
-      , Arg.Unit (fun _ -> baccaml_instr_info := true)
-      , "show instruction map")
     ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
     ]
     (fun s -> files := !files @ [s])
