@@ -146,6 +146,10 @@ let rec interp code pc stack =
         else push stack (Int' 0)
       in
       interp code pc stack
+    | NEG ->
+      let v,stack = pop stack in
+      let stack = push stack (v |*| (Int' (-1))) in
+      interp code pc stack
     | ADD ->
       let v2,stack = pop stack in
       let v1,stack = pop stack in
@@ -228,8 +232,6 @@ let rec interp code pc stack =
     | JUMP (* addr *)->
       let n,_ = fetch code pc in
       interp code n stack
-    | METHOD_ENTRY ->
-      interp code pc stack
     | ARRAY_MAKE ->
       let init,stack = pop stack in
       let size,stack = pop stack in
@@ -257,6 +259,7 @@ let rec interp code pc stack =
     | PRINT_NEWLINE ->
       print_newline ();
       interp code pc stack
+    | METHOD_COMP | TRACING_COMP | METHOD_ENTRY -> interp code pc stack
     | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst))
   end
 
