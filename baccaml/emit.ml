@@ -61,6 +61,7 @@ and compile_exp env =
   | Nop -> []
   | Set i -> [CONST; Literal i]
   | Mov var -> [DUP; Literal (lookup env var)]
+  | Neg (x) -> [DUP; Literal (lookup env x); NEG]
   | Add (x, y) ->
     [DUP; Literal (lookup env x)] @
     (compile_id_or_imm (shift_env env) y) @
@@ -155,8 +156,8 @@ let compile_fun_body fenv name arity annot exp env =
     | `True -> shift_env env
     | `False -> env in
   (match annot with
-   | Some `TJ -> []
-   | Some `MJ -> []
+   | Some `TJ -> [TRACING_COMP]
+   | Some `MJ -> [METHOD_COMP]
    | None -> []) @
   [METHOD_ENTRY; Ldef name] @
   (compile_t env exp) @

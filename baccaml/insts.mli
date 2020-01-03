@@ -4,6 +4,7 @@ type inst =
   | SUB
   | MUL
   | NOT
+  | NEG
   | LT
   | EQ
   | JUMP_IF_ZERO
@@ -23,6 +24,8 @@ type inst =
   | METHOD_ENTRY
   | CONST0
   | DUP0
+  | METHOD_COMP
+  | TRACING_COMP
   | Literal of int
   | Lref of string
   | Ldef of string
