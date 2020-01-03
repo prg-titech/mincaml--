@@ -85,6 +85,12 @@ and g' oc = function
       else (
         if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x ;
         Printf.fprintf oc "\timul\t%s, %s\n" (pp_id_or_imm z') x )
+  | NonTail(x), Div(y, z') ->
+      if V(x) = z' then
+        Printf.fprintf oc "\tidivl\t%s\n" y
+      else
+        (if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x;
+         Printf.fprintf oc "\tidivl\t%s\n" (pp_id_or_imm z'))
   | NonTail x, Ld (y, V z, i) ->
       Printf.fprintf oc "\tmovl\t(%s,%s,%d), %s\n" y z i x
   | NonTail x, Ld (y, C j, i) ->
@@ -159,7 +165,7 @@ and g' oc = function
   | Tail, ((Nop | St _ | StDF _ | Comment _ | Save _) as exp) ->
       g' oc (NonTail (Id.gentmp Type.Unit), exp) ;
       Printf.fprintf oc "\tret\n"
-  | Tail, ((Set _ | SetL _ | Mov _ | Neg _ | Add _ | Mul _ | Sub _ | Ld _) as exp) ->
+  | Tail, ((Set _ | SetL _ | Mov _ | Neg _ | Add _ | Mul _ | Div _ | Sub _ | Ld _) as exp) ->
       g' oc (NonTail regs.(0), exp) ;
       Printf.fprintf oc "\tret\n"
   | ( Tail
