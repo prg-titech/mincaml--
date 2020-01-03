@@ -159,7 +159,7 @@ let compile_fun_body fenv name arity annot exp env =
    | Some `TJ -> [TRACING_COMP]
    | Some `MJ -> [METHOD_COMP]
    | None -> []) @
-  [METHOD_ENTRY; Ldef name] @
+  [Ldef name] @
   (compile_t env exp) @
   (if name = "main" then [HALT] else [RET; Literal arity])
 
