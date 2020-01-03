@@ -56,6 +56,8 @@ rule token = parse
     { LESS }
 | '>'
     { GREATER }
+| '%'
+    { PERCENT }
 | "if"
     { IF }
 | "then"

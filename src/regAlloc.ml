@@ -198,7 +198,7 @@ and g'_call dest cont regenv exp constr ys zs = (* ´Ø¿ô¸Æ¤Ó½Ð¤·¤Î¥ì¥¸¥¹¥¿³ä¤êÅö¤
      (fv cont),
    M.empty)
 
-let h { name = Id.L(x); args = ys; fargs = zs; body = e; ret = t } = (* ´Ø¿ô¤Î¥ì¥¸¥¹¥¿³ä¤êÅö¤Æ (caml2html: regalloc_h) *)
+let h { name = Id.L(x); args = ys; fargs = zs; body = e; ret = t; annot } = (* ´Ø¿ô¤Î¥ì¥¸¥¹¥¿³ä¤êÅö¤Æ (caml2html: regalloc_h) *)
   let regenv = M.add x reg_cl M.empty in
   let (i, arg_regs, regenv) =
     List.fold_left
@@ -226,7 +226,7 @@ let h { name = Id.L(x); args = ys; fargs = zs; body = e; ret = t } = (* ´Ø¿ô¤Î¥ì
     | Type.Float -> fregs.(0)
     | _ -> regs.(0) in
   let (e', regenv') = g (a, t) (Ans(Mov(a))) regenv e in
-  { name = Id.L(x); args = arg_regs; fargs = farg_regs; body = e'; ret = t }
+  { name = Id.L(x); args = arg_regs; fargs = farg_regs; body = e'; ret = t; annot }
 
 let f (Prog(data, fundefs, e)) = (* ¥×¥í¥°¥é¥àÁ´ÂÎ¤Î¥ì¥¸¥¹¥¿³ä¤êÅö¤Æ (caml2html: regalloc_f) *)
   Format.eprintf "register allocation: may take some time (up to a few minutes, depending on the size of functions)@.";

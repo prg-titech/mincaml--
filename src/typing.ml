@@ -36,10 +36,12 @@ let rec deref_term = function
   | FDiv(e1, e2) -> FDiv(deref_term e1, deref_term e2)
   | If(e1, e2, e3) -> If(deref_term e1, deref_term e2, deref_term e3)
   | Let(xt, e1, e2) -> Let(deref_id_typ xt, deref_term e1, deref_term e2)
-  | LetRec({ name = xt; args = yts; body = e1 }, e2) ->
+  | LetRec({ name = xt; args = yts; body = e1; annot = ant }, e2) ->
       LetRec({ name = deref_id_typ xt;
                args = List.map deref_id_typ yts;
-               body = deref_term e1 },
+               body = deref_term e1;
+               annot = ant
+             },
              deref_term e2)
   | App(e, es) -> App(deref_term e, List.map deref_term es)
   | Tuple(es) -> Tuple(List.map deref_term es)

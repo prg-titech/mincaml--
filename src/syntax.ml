@@ -28,7 +28,13 @@ type t = (* MinCamlの構文を表現するデータ型 (caml2html: syntax_t) *)
   | Put of t * t * t
   | List of t list
 [@@deriving show]
-and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
+
+and fundef =
+  { name : Id.t * Type.t;
+    args : (Id.t * Type.t) list;
+    body : t;
+    mutable annot : [`TJ | `MJ] option
+  }
 [@@deriving show]
 
 let rec print_t = function

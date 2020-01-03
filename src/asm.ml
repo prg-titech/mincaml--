@@ -36,7 +36,14 @@ and exp =
   | Save of Id.t * Id.t
   | Restore of Id.t
 [@@deriving show]
-type fundef = { name : Id.l; args : Id.t list; fargs : Id.t list; body : t; ret : Type.t }
+type fundef =
+  { name : Id.l;
+    args : Id.t list;
+    fargs : Id.t list;
+    body : t;
+    ret : Type.t;
+    mutable annot : [`TJ | `MJ] option
+  }
 [@@deriving show]
 (* プログラム全体 = 浮動小数点数テーブル + トップレベル関数 + メインの式 (caml2html: sparcasm_prog) *)
 type prog = Prog of (Id.l * float) list * fundef list * t

@@ -135,7 +135,7 @@ let rec g env = function (* 式の仮想マシンコード生成 (caml2html: virtual_g) *)
   | Closure.ExtArray(Id.L(x)) -> Ans(SetL(Id.L("min_caml_" ^ x)))
 
 (* 関数の仮想マシンコード生成 (caml2html: virtual_h) *)
-let h { Closure.name = (Id.L(x), t); Closure.args = yts; Closure.formal_fv = zts; Closure.body = e } =
+let h { Closure.name = (Id.L(x), t); Closure.args = yts; Closure.formal_fv = zts; Closure.body = e; annot } =
   let (int, float) = separate yts in
   let (offset, load) =
     expand
@@ -145,7 +145,7 @@ let h { Closure.name = (Id.L(x), t); Closure.args = yts; Closure.formal_fv = zts
       (fun z t offset load -> Let((z, t), Ld(x, C(offset), 1), load)) in
   match t with
   | Type.Fun(_, t2) ->
-      { name = Id.L(x); args = int; fargs = float; body = load; ret = t2 }
+      { name = Id.L(x); args = int; fargs = float; body = load; ret = t2; annot }
   | _ -> assert false
 
 (* プログラム全体の仮想マシンコード生成 (caml2html: virtual_f) *)

@@ -1,7 +1,12 @@
 %{
 (* parserが利用する変数、関数、型などの定義 *)
-open Syntax
-let addtyp x = (x, Type.gentyp ())
+    open Syntax;;
+    let addtyp x = (x, Type.gentyp ());;
+
+    let annot_of_var var =
+      if var = "mj" then Some `MJ
+      else if var = "tj" then Some `TJ
+      else None;;
 %}
 
 /* (* 字句を表すデータ型の定義 (caml2html: parser_token) *) */
@@ -40,6 +45,7 @@ let addtyp x = (x, Type.gentyp ())
 %token LBRAC
 %token RBRAC
 %token VBAR
+%token PERCENT
 %token EOF
 
 /* (* 優先順位とassociativityの定義（低い方から高い方へ） (caml2html: parser_prior) *) */
@@ -130,7 +136,13 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
     { LetRec($3, $5) }
 | LET REC fundef IN exp
     %prec prec_let
-    { LetRec($3, $5) }
+     { LetRec($3, $5) }
+| LET PERCENT IDENT REC fundef IN exp
+    %prec prec_let
+    { let fundef = $5 in
+      fundef.annot <- annot_of_var $3;
+      LetRec(fundef, $7)
+    }
 | simple_exp actual_args
     %prec prec_app
     { App($1, $2) }
@@ -172,7 +184,7 @@ exp: /* (* 一般の式 (caml2html: parser_exp) *) */
 
 fundef:
 | IDENT formal_args EQUAL exp
-    { { name = addtyp $1; args = $2; body = $4 } }
+    { { name = addtyp $1; args = $2; body = $4; annot = None } }
 
 formal_args:
 | IDENT formal_args

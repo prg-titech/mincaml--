@@ -33,8 +33,8 @@ and g' env = function (* 各命令の即値最適化 (caml2html: simm13_gprime) *)
   | IfFLE(x, y, e1, e2) -> IfFLE(x, y, g env e1, g env e2)
   | e -> e
 
-let h { name = l; args = xs; fargs = ys; body = e; ret = t } = (* トップレベル関数の即値最適化 *)
-  { name = l; args = xs; fargs = ys; body = g M.empty e; ret = t }
+let h { name = l; args = xs; fargs = ys; body = e; ret = t; annot } = (* トップレベル関数の即値最適化 *)
+  { name = l; args = xs; fargs = ys; body = g M.empty e; ret = t; annot }
 
 let f (Prog(data, fundefs, e)) = (* プログラム全体の即値最適化 *)
   Prog(data, List.map h fundefs, g M.empty e)

@@ -253,7 +253,7 @@ let f oc (Prog (ftable, fundefs, main)) =
     "  (func $min_caml_print_newline (import \"imports\" \"newline\") (param i32) (result i32))\n";
   (* main *)
   let mainfun =
-    { name = Id.L ("main"); args = []; fargs = []; body = main; ret = Type.Unit }
+    { name = Id.L ("main"); args = []; fargs = []; body = main; ret = Type.Unit; annot = None }
   in
   Printf.fprintf oc "%s\n"
       (String.concat "\n" [

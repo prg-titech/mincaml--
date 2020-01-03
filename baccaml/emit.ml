@@ -150,17 +150,21 @@ let resolve_labels instrs =
   |> List.filter ~f:(function Ldef _ -> false | _ -> true)
 
 
-let compile_fun_body fenv name arity exp env =
+let compile_fun_body fenv name arity annot exp env =
   let env = match !sh_flg with
     | `True -> shift_env env
     | `False -> env in
+  (match annot with
+   | Some `TJ -> []
+   | Some `MJ -> []
+   | None -> []) @
   [METHOD_ENTRY; Ldef name] @
   (compile_t env exp) @
   (if name = "main" then [HALT] else [RET; Literal arity])
 
 
-let compile_fun (fenv : Id.l -> Asm.fundef) Asm.{name= Id.L name; args; body;} =
-  compile_fun_body fenv name (List.length args)
+let compile_fun (fenv : Id.l -> Asm.fundef) Asm.{name= Id.L name; args; body; annot } =
+  compile_fun_body fenv name (List.length args) annot
     body (build_arg_env args)
 
 
@@ -181,5 +185,5 @@ let resolve_labels' instrs =
 
 let f (Asm.Prog (_, fundefs, main)) =
   let open Asm in
-  let main = { name= Id.L ("main"); args= []; fargs= []; ret= Type.Int; body = main } in
+  let main = { name= Id.L ("main"); args= []; fargs= []; ret= Type.Int; body = main; annot = None } in
   (compile_funs (main :: fundefs))

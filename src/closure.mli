@@ -7,6 +7,7 @@ type t =
   | Add of Id.t * Id.t
   | Sub of Id.t * Id.t
   | Mul of Id.t * Id.t
+  | Div of Id.t * Id.t
   | FNeg of Id.t
   | FAdd of Id.t * Id.t
   | FSub of Id.t * Id.t
@@ -24,10 +25,13 @@ type t =
   | Get of Id.t * Id.t
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.l
-type fundef = { name : Id.l * Type.t;
-                args : (Id.t * Type.t) list;
-                formal_fv : (Id.t * Type.t) list;
-                body : t }
+type fundef =
+  { name : Id.l * Type.t;
+    args : (Id.t * Type.t) list;
+    formal_fv : (Id.t * Type.t) list;
+    body : t;
+    mutable annot : [`TJ | `MJ] option
+  }
 type prog = Prog of fundef list * t
 
 val fv : t -> S.t

@@ -6,6 +6,7 @@ type t =
   | Add of Id.t * Id.t
   | Sub of Id.t * Id.t
   | Mul of Id.t * Id.t
+  | Div of Id.t * Id.t
   | FNeg of Id.t
   | FAdd of Id.t * Id.t
   | FSub of Id.t * Id.t
@@ -23,7 +24,12 @@ type t =
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.t
   | ExtFunApp of Id.t * Id.t list
-and fundef = { name : Id.t * Type.t; args : (Id.t * Type.t) list; body : t }
+and fundef =
+  { name : Id.t * Type.t;
+    args : (Id.t * Type.t) list;
+    body : t;
+    mutable annot : [`TJ | `MJ] option
+  }
 
 val show : t -> string
 val show_fundef : fundef -> string
