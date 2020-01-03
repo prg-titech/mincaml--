@@ -108,15 +108,20 @@ module Printer = struct
           pp_insts ~i:0 tl
       end
 
-  let pp_bytecode oc insts =
-    insts |> Array.fold_left begin fun i instr ->
-      (match instr with
-       | Literal j ->
-         Printf.fprintf oc "code.(%d) <- %d;\n" i j
-       | _ ->
-         Printf.fprintf oc "code.(%d) <- %d;\n" i (index_of instr));
-      i + 1
-    end 0 |> ignore
+  let rec pp_bytecode oc insts =
+    insts
+    |> Array.mapi (fun i x -> (i,x))
+    |> Array.map (fun (i,instr) ->
+        (match instr with
+         | CONST | DUP
+         | JUMP | JUMP_IF_ZERO
+         | CALL | RET ->
+           Printf.fprintf oc "code.(%d) <- %d; " i (index_of instr);
+         | Literal j ->
+           Printf.fprintf oc "code.(%d) <- %d;\n" i j;
+         | _ ->
+           Printf.fprintf oc "code.(%d) <- %d;\n" i (index_of instr)))
+    |> ignore
 
   let write_bytecode oc insts =
     Printf.fprintf oc "%d\n" (Array.length insts);
