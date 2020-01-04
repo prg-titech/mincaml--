@@ -44,8 +44,14 @@ let gen_label _ =
 let reset _ = label_counter := 0
 
 let compile_id_or_imm env = function
-  | Asm.C (n) -> [CONST; Literal n]
-  | Asm.V (x) -> [DUP; Literal (lookup env x)]
+  | Asm.C (n) ->
+    if n = 0 then [CONST0]
+    else [CONST; Literal n]
+  | Asm.V (x) ->
+    let y = lookup env x in
+    if y = 0 then [DUP0]
+    else [DUP; Literal y]
+
 
 let rec compile_t env = function
   | Asm.Ans (e) -> compile_exp env e
@@ -59,40 +65,40 @@ and compile_exp env =
   let open Asm in
   function
   | Nop -> []
-  | Set i -> [CONST; Literal i]
-  | Mov var -> [DUP; Literal (lookup env var)]
-  | Neg (x) -> [DUP; Literal (lookup env x); NEG]
+  | Set i -> (compile_id_or_imm env (C i))
+  | Mov var -> (compile_id_or_imm env (V var))
+  | Neg var -> (compile_id_or_imm env (V var)) @ [NEG]
   | Add (x, y) ->
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [ADD]
   | Sub (x, y) ->
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [SUB]
   | Mul (x, y) ->
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [MUL]
   | IfEq (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [EQ] @
     [JUMP_IF_ZERO; Lref l1] @
     (compile_t env then_exp) @
-    [CONST; Literal 0; JUMP_IF_ZERO; Lref l2] @
+    [CONST0; JUMP_IF_ZERO; Lref l2] @
     [Ldef l1] @
     (compile_t env else_exp) @
     [Ldef l2]
   | IfLE (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [LT] @
     [JUMP_IF_ZERO; Lref l1] @
     (compile_t env then_exp) @
-    [CONST; Literal 0; JUMP_IF_ZERO; Lref l2] @
+    [CONST0; JUMP_IF_ZERO; Lref l2] @
     [Ldef l1] @
     (compile_t env else_exp) @
     [Ldef l2]
@@ -108,7 +114,7 @@ and compile_exp env =
     [ARRAY_MAKE]
   | CallDir (Id.L var, rands, _) ->
     ((List.fold_left ~f:(fun (rev_code_list, env) v ->
-         [DUP; Literal (lookup env v)] :: rev_code_list,
+         (compile_id_or_imm env (V v)) :: rev_code_list,
          shift_env env)
          ~init:([], env) rands)
      |> fst
@@ -116,12 +122,12 @@ and compile_exp env =
      |> List.flatten) @
      [CALL; Lref var; Literal (List.length rands)]
   | Ld (x, y, _) ->
-    [DUP; Literal (lookup env x)] @
+    (compile_id_or_imm env (V x)) @
     (compile_id_or_imm (shift_env env) y) @
     [GET]
   | St (x, y, z, _) ->
-    [DUP; Literal (lookup env x)] @
-    [DUP; Literal (lookup (shift_env env) y)] @
+    (compile_id_or_imm env (V x)) @
+    (compile_id_or_imm (shift_env env) (V y)) @
     (compile_id_or_imm (shift_env (shift_env env)) z) @
     [PUT]
   | exp ->

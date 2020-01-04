@@ -177,6 +177,9 @@ let rec interp code pc stack =
     | CONST -> let c,pc = fetch code pc in
       let stack = push stack (value_of_int c) in
       interp  code pc stack
+    | CONST0 ->
+      let stack = push stack (value_of_int 0) in
+      interp  code pc stack
     | JUMP_IF_ZERO (* addr *) ->
       let addr,pc = fetch code pc in
       let v,stack = pop stack in
@@ -216,6 +219,9 @@ let rec interp code pc stack =
     | DUP ->
       let n,pc = fetch code pc in
       let stack = push stack (take stack n) in
+      interp  code pc stack
+    | DUP0 ->
+      let stack = push stack (take stack 0) in
       interp  code pc stack
     | HALT -> fst(pop stack)    (* just return the top value *)
     | FRAME_RESET (* n *) ->
