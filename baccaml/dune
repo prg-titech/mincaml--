@@ -8,7 +8,7 @@
 
 (executable
  (name bytegen)
- (public_name bytegen)
+ (public_name bac-caml)
  (flags (-w -4-33-40-41))
  (modules Bytegen)
  (libraries MinCaml BacCaml))
