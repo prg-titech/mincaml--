@@ -167,8 +167,9 @@ let rec read_code i n arr =
   else
     (arr.(i) <- read_int ();
      read_code (i+1) n arr) in
+let main_pc = read_int () in
 let n = read_int () in
 let arr = Array.make n 0 in
 let code = read_code 0 n arr in
-let _ = (interp stk 1 code 0) in
+let _ = (interp stk 1 code main_pc) in
 ()
