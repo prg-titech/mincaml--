@@ -6,23 +6,18 @@ type backend =
   | Virtual
 
 let backend_type = ref MinCaml
-
 let debug = ref false
-
 let ast_dump = ref false
-
-let with_flag flag ~tru:f ~fls:g =
-  if !flag then f () else g ()
+let with_flag flag ~tru:f ~fls:g = if !flag then f () else g ()
 
 let ast oc l =
   Id.counter := 0;
-  Parser.exp Lexer.token l
-  |> Syntax.show
-  |> print_endline
+  Parser.exp Lexer.token l |> Syntax.show |> print_endline
+;;
 
 let lexbuf oc l =
-  Id.counter := 0 ;
-  Typing.extenv := M.empty ;
+  Id.counter := 0;
+  Typing.extenv := M.empty;
   Parser.exp Lexer.token l
   |> Typing.f
   |> KNormal.f
@@ -32,12 +27,11 @@ let lexbuf oc l =
   |> Virtual.f
   |> Simm.f
   |> fun p ->
-  begin
-    match !backend_type with
-    | Wasm -> Wasm.Emit.f oc p
-    | MinCaml -> RegAlloc.f p |> X86.Emit.f oc
-    | Virtual -> Asm.show_prog p |> Printf.fprintf oc "%s"
-  end
+  match !backend_type with
+  | Wasm -> Wasm.Emit.f oc p
+  | MinCaml -> RegAlloc.f p |> X86.Emit.f oc
+  | Virtual -> Asm.show_prog p |> Printf.fprintf oc "%s"
+;;
 
 let string s = lexbuf stdout (Lexing.from_string s)
 
@@ -52,12 +46,19 @@ let main f =
   in
   try
     let input = Lexing.from_channel inchan in
-    with_flag ast_dump
+    with_flag
+      ast_dump
       ~tru:(fun _ -> ast outchan input)
-      ~fls:(fun _ -> lexbuf outchan input ;
-             close_in inchan ;
-             close_out outchan)
-  with e -> close_in inchan ; close_out outchan ; raise e
+      ~fls:(fun _ ->
+        lexbuf outchan input;
+        close_in inchan;
+        close_out outchan)
+  with
+  | e ->
+    close_in inchan;
+    close_out outchan;
+    raise e
+;;
 
 let () =
   let files = ref [] in
@@ -68,22 +69,17 @@ let () =
     ; ( "-iter"
       , Arg.Int (fun i -> Util.limit := i)
       , "maximum number of optimizations iterated" )
-    ; ( "-ast"
-      , Arg.Unit (fun _ -> ast_dump := true)
-      , "emit abstract syntax tree")
-    ; ("-virtual"
+    ; "-ast", Arg.Unit (fun _ -> ast_dump := true), "emit abstract syntax tree"
+    ; ( "-virtual"
       , Arg.Unit (fun _ -> backend_type := Virtual)
-      , "emit virtual machine code")
-    ; ("-debug"
-      , Arg.Unit (fun _ -> debug := true)
-      , "enable debug mode")
-    ; ("-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly")
+      , "emit virtual machine code" )
+    ; "-debug", Arg.Unit (fun _ -> debug := true), "enable debug mode"
+    ; "-wasm", Arg.Unit (fun _ -> backend_type := Wasm), "emit webassembly"
     ]
-    (fun s -> files := !files @ [s])
-    ( "Mitou Min-Caml Compiler (C) Eijiro Sumii\n"
+    (fun s -> files := !files @ [ s ])
+    ("Mitou Min-Caml Compiler (C) Eijiro Sumii\n"
     ^ Printf.sprintf
         "usage: %s [-inline m] [-iter n] ...filenames without \".ml\"..."
-        Sys.argv.(0) ) ;
-  List.iter
-    (fun f -> main f)
-    !files
+        Sys.argv.(0));
+  List.iter (fun f -> main f) !files
+;;

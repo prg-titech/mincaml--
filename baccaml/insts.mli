@@ -31,7 +31,6 @@ type inst =
   | Ldef of string
 
 val show_inst : inst -> string
-
 val insts : inst array
 
 module Printer : sig
