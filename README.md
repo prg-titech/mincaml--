@@ -7,7 +7,7 @@ A fork of the MinCaml compiler modified for the BacCaml language implementation 
 ## Bytecode generation
 
 ```shell
-$ dune exec bytegen -- path/to/file.ml
+$ dune exec bac-caml -- path/to/file.ml
 ```
 
 ## Compiling a file written in MinCaml
