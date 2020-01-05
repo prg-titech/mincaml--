@@ -83,6 +83,9 @@ let () =
       ; ( "-virtual"
         , Arg.Unit (fun _ -> backend_type := Virtual)
         , "emit MinCaml IR" )
+      ; ("-tail-opt"
+        , Arg.Unit (fun _ -> Config.(tail_opt_flg := true))
+        , "enable optimization for tail-recursive call")
       ; ( "-insts"
         , Arg.Unit (fun _ -> show_insts_map_type := `True)
         , "show instruction map" )

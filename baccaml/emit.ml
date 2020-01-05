@@ -72,7 +72,7 @@ let rec compile_t fname env =
   let open Asm in
   function
   | Ans (CallDir (Id.L fname', args, fargs) as e) ->
-    if fname' = fname
+    if fname' = fname && !tail_opt_flg
     then (
       let old_arity, local_size = arity_of_env env in
       let new_arity = List.length args in

@@ -11,3 +11,5 @@ type vm_debug =
   ]
 
 let vm_debug_flg : vm_debug ref = ref `False
+
+let tail_opt_flg = ref false
