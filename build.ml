@@ -12,7 +12,7 @@ let emit_bytecode f = cmd @@ s "dune exec bytegen -- %s" f
 let compile_with_gcc f =
   cmd
   @@ s
-       "gcc -m32 -O2 -Wall src/stub.c src/libmincaml.S %s -lm -o %s"
+       "gcc -m32 -g -O2 -Wall src/stub.c src/libmincaml.S %s -lm -o %s"
        (f ^ ".s")
        (f ^ ".exe")
 ;;
