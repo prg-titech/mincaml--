@@ -39,7 +39,8 @@ let offset x = 4 * List.hd (locate x)
 let stacksize () = align (List.length !stackmap * 4)
 let pp_id_or_imm = function V x -> x | C i -> "$" ^ string_of_int i
 
-(* 関数呼び出しのために引数を並べ替える(register shuffling) (caml2html: emit_shuffle) *)
+(* 関数呼び出しのために引数を並べ替える(register shuffling) (caml2html:
+   emit_shuffle) *)
 let rec shuffle sw xys =
   (* remove identical moves *)
   let _, xys = List.partition (fun (x, y) -> x = y) xys in
@@ -95,11 +96,18 @@ and g' oc = function
       if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x;
       Printf.fprintf oc "\timul\t%s, %s\n" (pp_id_or_imm z') x)
   | NonTail x, Div (y, z') ->
+    Printf.fprintf oc "\tmovl\t$0,%%edx\n";
     if V x = z'
-    then Printf.fprintf oc "\tidivl\t%s\n" y
+    then (
+      if y <> "%eax" then Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
+      Printf.fprintf oc "\tmovl\t%s,%%ecx\n" x;
+      Printf.fprintf oc "\tidivl\t%s\n" x;
+      if x <> "%eax" then Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
     else (
       if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x;
-      Printf.fprintf oc "\tidivl\t%s\n" (pp_id_or_imm z'))
+      if y <> "%eax" then Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
+      Printf.fprintf oc "\tidivl\t%s\n" (pp_id_or_imm z');
+      if x <> "%eax" then Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
   | NonTail x, Ld (y, V z, i) ->
     Printf.fprintf oc "\tmovl\t(%s,%s,%d), %s\n" y z i x
   | NonTail x, Ld (y, C j, i) ->

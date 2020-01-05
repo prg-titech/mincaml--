@@ -42,6 +42,8 @@ rule token = parse
     { PLUS_DOT }
 | "*."
     { AST_DOT }
+| '/'
+    { SLASH }
 | "/."
     { SLASH_DOT }
 | '='

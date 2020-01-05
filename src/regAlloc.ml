@@ -60,6 +60,7 @@ and source' t = function
   | Add (x, C _)
   | Sub (x, _)
   | Mul (x, _)
+  | Div (x, _)
   | FMovD x
   | FNegD x
   | FSubD (x, _)
@@ -190,6 +191,7 @@ and g' dest cont regenv = function
   | Add (x, y') -> Ans (Add (find x Type.Int regenv, find' y' regenv)), regenv
   | Sub (x, y') -> Ans (Sub (find x Type.Int regenv, find' y' regenv)), regenv
   | Mul (x, y') -> Ans (Mul (find x Type.Int regenv, find' y' regenv)), regenv
+  | Div (x, y') -> Ans (Div (find x Type.Int regenv, find' y' regenv)), regenv
   | Ld (x, y', i) ->
     Ans (Ld (find x Type.Int regenv, find' y' regenv, i)), regenv
   | St (x, y, z', i) ->

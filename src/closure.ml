@@ -47,6 +47,7 @@ let rec fv = function
   | Add (x, y)
   | Sub (x, y)
   | Mul (x, y)
+  | Div (x, y)
   | FAdd (x, y)
   | FSub (x, y)
   | FMul (x, y)
