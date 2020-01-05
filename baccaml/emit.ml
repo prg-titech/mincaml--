@@ -1,4 +1,5 @@
 open MinCaml
+open Asm
 
 open Config
 open Insts
@@ -24,8 +25,12 @@ let lookup env var =
   | None -> failwith (Printf.sprintf "%s not found" var)
 let extend_env env var = var :: env
 let shift_env env = extend_env env "*dummy*"
+let downshift_env env = List.tl env
 let return_address_marker = "$ret_addr"
-let build_arg_env args = return_address_marker::(List.rev args)
+let jit_flg_marker = "$jit_flg"
+let build_arg_env args = match !sh_flg with
+  | `True -> return_address_marker :: jit_flg_marker :: (List.rev args)
+  | `False -> return_address_marker :: (List.rev args)
 (* computes the number of arguments to this frame.  The stack has a
    shape like [...local vars...][ret addr][..args...], the return
    address position from the top indicates the number of local
@@ -33,6 +38,11 @@ let build_arg_env args = return_address_marker::(List.rev args)
 let arity_of_env env =
   let num_local_vars = lookup env return_address_marker in
   (List.length env - num_local_vars  - 1, num_local_vars)
+
+let arity_of_env_sh env =
+  let num_local_vars = lookup env return_address_marker in
+  let flg_offset = lookup env return_address_marker in
+  (List.length env - num_local_vars - 1, num_local_vars, flg_offset)
 
 let label_counter = ref 0
 
@@ -53,17 +63,33 @@ let compile_id_or_imm env = function
     else [DUP; Literal y]
 
 
-let rec compile_t env = function
-  | Asm.Ans (e) -> compile_exp env e
-  | Asm.Let ((x,_), exp, t) ->
-    let ex_env = extend_env env x in
-    (compile_exp env exp) @
-    (compile_t ex_env t) @
-    [POP1]
-
-and compile_exp env =
+let rec compile_t fname env =
   let open Asm in
   function
+  | Ans (CallDir (Id.L (fname'), args, fargs) as e) ->
+    if fname' = fname then
+      let old_arity,local_size = arity_of_env env in
+      let new_arity = List.length args in
+      ((List.fold_left ~f:(fun (rev_code_list, env) v ->
+           (compile_id_or_imm env (V v)) :: rev_code_list,
+           shift_env env)
+           ~init:([], env) args) |> fst |> List.rev |> List.flatten) @
+      [FRAME_RESET;
+       Literal old_arity; Literal local_size; Literal new_arity;
+       JUMP; Lref fname]
+    else
+      compile_exp fname env e
+  | Ans (e) -> compile_exp fname env e
+  | Let ((x,_), exp, t) ->
+    let ex_env = extend_env env x in
+    (compile_exp fname env exp) @
+    (compile_t fname ex_env t) @
+    [POP1]
+
+
+and compile_exp fname env exp =
+  let open Asm in
+  match exp with
   | Nop -> []
   | Set i -> (compile_id_or_imm env (C i))
   | Mov var -> (compile_id_or_imm env (V var))
@@ -86,10 +112,10 @@ and compile_exp env =
     (compile_id_or_imm (shift_env env) y) @
     [EQ] @
     [JUMP_IF_ZERO; Lref l1] @
-    (compile_t env then_exp) @
-    [CONST0; JUMP_IF_ZERO; Lref l2] @
+    (compile_t fname env then_exp) @
+    [JUMP; Lref l2] @
     [Ldef l1] @
-    (compile_t env else_exp) @
+    (compile_t fname env else_exp) @
     [Ldef l2]
   | IfLE (x, y, then_exp, else_exp) ->
     let l2,l1 = gen_label(),gen_label () in
@@ -97,12 +123,12 @@ and compile_exp env =
     (compile_id_or_imm (shift_env env) y) @
     [LT] @
     [JUMP_IF_ZERO; Lref l1] @
-    (compile_t env then_exp) @
-    [CONST0; JUMP_IF_ZERO; Lref l2] @
+    (compile_t fname env then_exp) @
+    [JUMP; Lref l2] @
     [Ldef l1] @
-    (compile_t env else_exp) @
+    (compile_t fname env else_exp) @
     [Ldef l2]
-  | IfGE (x, y, e1, e2) -> compile_exp env (IfLE (x, y, e2, e1))
+  | IfGE (x, y, e1, e2) -> compile_exp fname env (IfLE (x, y, e2, e1))
   | CallDir (Id.L "min_caml_print_int", [x], _) ->
     (compile_id_or_imm env (V x)) @
     [PRINT_INT]
@@ -133,6 +159,17 @@ and compile_exp env =
   | exp ->
     failwith (Printf.sprintf "un matched pattern: %s" (Asm.show_exp exp))
 
+let rec assoc_tail_rec fname = function
+  | Ans (CallDir (Id.L fname', args, fargs)) -> fname = fname'
+  | Ans (e) -> assoc_tail_rec' fname e
+  | Let (_, _, t) -> assoc_tail_rec fname t
+
+and assoc_tail_rec' fname = function
+  | IfEq (_, _, e1, e2) | IfLE (_, _, e1, e2) | IfGE (_, _, e1, e2)
+  | IfFEq (_, _, e1, e2) | IfFLE (_, _, e1, e2) ->
+    assoc_tail_rec fname e1 || assoc_tail_rec fname e2
+  | e -> false
+
 (* resolving labels *)
 let assoc_if subst elm =
   try List.assoc elm subst with
@@ -158,21 +195,17 @@ let resolve_labels instrs =
 
 
 let compile_fun_body fenv name arity annot exp env =
-  let env = match !sh_flg with
-    | `True -> shift_env env
-    | `False -> env in
   (match annot with
    | Some `TJ -> [TRACING_COMP]
    | Some `MJ -> [METHOD_COMP]
    | None -> []) @
   [Ldef name] @
-  (compile_t env exp) @
+  (compile_t name env exp) @
   (if name = "main" then [HALT] else [RET; Literal arity])
 
 
 let compile_fun (fenv : Id.l -> Asm.fundef) Asm.{name= Id.L name; args; body; annot } =
-  compile_fun_body fenv name (List.length args) annot
-    body (build_arg_env args)
+  compile_fun_body fenv name (List.length args) annot body (build_arg_env args)
 
 
 let compile_funs fundefs =

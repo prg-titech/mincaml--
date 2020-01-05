@@ -5,6 +5,8 @@ open Insts
 
 let max_stack_depth = 1000000
 
+let with_debug f = match !vm_debug_flg with `True -> f () | `False -> ()
+
 let index_of element array =
   fst(List.find (fun (_,v) -> v=element)
         (List.mapi (fun idx v -> (idx,v)) (Array.to_list array)) )
@@ -77,10 +79,25 @@ let drop : stack -> int -> stack =
 let frame_reset : stack -> int -> int -> int -> stack =
   fun (sp,stack) o l n ->
   let ret = stack.(sp-n-l-1) in (* save return address *)
+  let jit_flg = stack.(sp-n-l-2) in
   let old_base = sp - n - l - o - 1 in
-  let new_base = sp - n in
+  let new_base = sp - n  in
+  let _ =
+    with_debug (fun () ->
+        eprintf "offset: %d ret: %d, sp: %d, old_base: %d, new_base: %d\n"
+          (sp-n-l-1) (Value.int_of_value ret) sp old_base new_base) in
   let rec loop i =
-    if n=i then (stack.(old_base+n)<-ret; (old_base+n+1, stack))
+    if n=i then
+      begin
+        match !sh_flg with
+        | `True ->
+          stack.(old_base+(n))<-jit_flg;
+          stack.(old_base+(n+1))<-ret;
+          (old_base+n+2,stack)
+        | `False ->
+          stack.(old_base+n)<-ret;
+          (old_base+n+1, stack)
+      end
     else (stack.(old_base+i)<-stack.(new_base+i);
           loop (i+1)) in
   loop 0
@@ -124,9 +141,8 @@ let checkpoint =
   else fun () -> ()
 
 let debug pc inst stack =
-  if !vm_debug_flg = `True then
-    Printf.printf "%d %s %s\n" (pc-1) (show_inst inst) (dump_stack stack)
-  else ()
+  with_debug (fun () ->
+      eprintf "%d %s %s\n" (pc-1) (show_inst inst) (dump_stack stack))
 
 let rec interp code pc stack =
   checkpoint ();
@@ -224,10 +240,11 @@ let rec interp code pc stack =
       let stack = push stack (take stack 0) in
       interp  code pc stack
     | HALT -> fst(pop stack)    (* just return the top value *)
-    | FRAME_RESET (* n *) ->
+    | FRAME_RESET (* o l n *) ->
       let o,pc = fetch code pc in
       let l,pc = fetch code pc in
       let n,pc = fetch code pc in
+      let _ = with_debug (fun _ -> eprintf "o: %d, l %d, n: %d\n" o l n) in
       let stack = frame_reset stack o l n in
       interp  code pc stack
     | POP1 ->
