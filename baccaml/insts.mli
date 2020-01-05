@@ -26,6 +26,7 @@ type inst =
   | DUP0
   | METHOD_COMP
   | TRACING_COMP
+  | RAND_INT
   | Literal of int
   | Lref of string
   | Ldef of string

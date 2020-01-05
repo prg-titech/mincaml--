@@ -314,14 +314,30 @@ let rec interp code pc stack =
     | PRINT_INT ->
       let n, stack = pop stack in
       print_int (int_of_value n);
+      let stack = push stack n in
       interp code pc stack
     | PRINT_NEWLINE ->
       print_newline ();
+      interp code pc stack
+    | RAND_INT ->
+      let n,stack = pop stack in
+      let v = Random.int (int_of_value n) in
+      let stack = push stack (value_of_int v) in
       interp code pc stack
     | METHOD_COMP | TRACING_COMP | METHOD_ENTRY -> interp code pc stack
     | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst)))
 ;;
 
+let create_dummy_stack () =
+  let open Value in
+  let stack = make_stack () in
+  let rec loop i = fun stk ->
+    if i = 0 then stk
+    else
+      loop (i-1) (push stk (value_of_int (-47)))
+  in
+  loop 2 stack
+;;
 (* run the given program by calling the function id 0 *)
 type fundef_bin_t = int array
 
@@ -329,7 +345,7 @@ let run_bin : fundef_bin_t -> int =
   fun fundefs ->
   let main_idx = Insts.index_of_main (`Int fundefs) in
   let open Value in
-  let stack = push (make_stack ()) (value_of_int (-987)) in
+  let stack = create_dummy_stack () in
   int_of_value @@ interp fundefs main_idx stack
 ;;
 

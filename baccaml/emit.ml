@@ -147,6 +147,8 @@ and compile_exp fname env exp =
   | CallDir (Id.L "min_caml_print_int", [ x ], _) ->
     compile_id_or_imm env (V x) @ [ PRINT_INT ]
   | CallDir (Id.L "min_caml_print_newline", _, _) -> [ PRINT_NEWLINE ]
+  | CallDir (Id.L "min_caml_rand_int", [ x ], _) ->
+    compile_id_or_imm env (V x) @ [ RAND_INT ]
   | CallDir (Id.L "min_caml_create_array", [ x; y ], _) ->
     compile_id_or_imm env (V x)
     @ compile_id_or_imm (shift_env env) (V y)

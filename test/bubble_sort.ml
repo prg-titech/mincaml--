@@ -19,14 +19,12 @@ let rec bubble_sort xs idx len =
     bubble_sort xs (idx + 1) len)
 in
 let rec make_arr n arr =
-  if n < 0 then arr else
-    (arr.(n) <- rand_int 2048; make_arr (n-1) arr)
+  if n < 1 then arr else
+    (arr.(n-1) <- rand_int 2048; make_arr (n-1) arr)
 in
-let rec print_arr n i arr =
-  if i = n then () else
-    (print_int (arr.(i)); print_newline ();
-     print_arr n (i+1) arr) in
 let a = Array.make 10 0 in
 let a = make_arr 10 a in
 let a = bubble_sort a 0 10 in
-print_arr 10 0 a
+print_int (a.(0));
+print_int (a.(1));
+print_int (a.(2))
