@@ -326,10 +326,11 @@ let rec interp code pc stack =
 type fundef_bin_t = int array
 
 let run_bin : fundef_bin_t -> int =
- fun fundefs ->
+  fun fundefs ->
+  let main_idx = Insts.index_of_main (`Int fundefs) in
   let open Value in
   let stack = push (make_stack ()) (value_of_int (-987)) in
-  int_of_value @@ interp fundefs 0 stack
+  int_of_value @@ interp fundefs main_idx stack
 ;;
 
 (* convert the given program into binary, and then run *)

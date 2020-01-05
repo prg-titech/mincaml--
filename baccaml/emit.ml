@@ -199,10 +199,11 @@ let resolve_labels instrs =
 ;;
 
 let compile_fun_body fenv name arity annot exp env =
-  (match annot with
-  | Some `TJ -> [ TRACING_COMP ]
-  | Some `MJ -> [ METHOD_COMP ]
-  | None -> [])
+  [ METHOD_ENTRY ]
+  @ (match annot with
+    | Some `TJ -> [ TRACING_COMP ]
+    | Some `MJ -> [ METHOD_COMP ]
+    | None -> [])
   @ [ Ldef name ]
   @ compile_t name env exp
   @ if name = "main" then [ HALT ] else [ RET; Literal arity ]
@@ -241,5 +242,5 @@ let f (Asm.Prog (_, fundefs, main)) =
     ; annot = None
     }
   in
-  compile_funs (main :: fundefs)
+  `Result (compile_funs (fundefs @ [ main ]))
 ;;

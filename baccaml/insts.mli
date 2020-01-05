@@ -32,6 +32,7 @@ type inst =
 
 val show_inst : inst -> string
 val insts : inst array
+val index_of_main : [< `Int of int array | `Inst of inst array] -> int
 
 module Printer : sig
   val pp_inst_map : unit -> unit
