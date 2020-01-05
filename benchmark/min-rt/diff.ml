@@ -14,3 +14,4 @@ let _ =
     done
   done;
   Ppm.dump Sys.argv.(3) img1
+;;
