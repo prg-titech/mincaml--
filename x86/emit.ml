@@ -99,15 +99,15 @@ and g' oc = function
     Printf.fprintf oc "\tmovl\t$0,%%edx\n";
     if V x = z'
     then (
-      if y <> "%eax" then Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
+      Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
       Printf.fprintf oc "\tmovl\t%s,%%ecx\n" x;
       Printf.fprintf oc "\tidivl\t%s\n" x;
-      if x <> "%eax" then Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
+      Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
     else (
       if x <> y then Printf.fprintf oc "\tmovl\t%s, %s\n" y x;
-      if y <> "%eax" then Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
+      Printf.fprintf oc "\tmovl\t%s,%%eax\n" y;
       Printf.fprintf oc "\tidivl\t%s\n" (pp_id_or_imm z');
-      if x <> "%eax" then Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
+      Printf.fprintf oc "\tmovl\t%%eax,%s\n" x)
   | NonTail x, Ld (y, V z, i) ->
     Printf.fprintf oc "\tmovl\t(%s,%s,%d), %s\n" y z i x
   | NonTail x, Ld (y, C j, i) ->
