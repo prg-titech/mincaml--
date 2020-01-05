@@ -1,3 +1,3 @@
-let rec div x y =
-  x / y
-in print_int (div 4 2)
+let rec div x y z =
+  (x + y) / z
+in print_int (div 4 3 2)
