@@ -249,6 +249,16 @@ min_caml_print_debug:
 	movl	%ebp, %esp
 	popl	%ebp
 	ret
+.globl min_caml_rand_int
+min_caml_rand_int:
+	pushl	%ebp
+	movl	%esp, %ebp
+	ALIGNSTACK1
+	pushl	%eax
+	call	rand_int
+	movl	%ebp, %esp
+	popl	%ebp
+	ret
 .data
 format_int:
 	.asciz	"%d"

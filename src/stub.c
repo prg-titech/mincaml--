@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/time.h>
 
 extern void min_caml_start(char *, char *);
-extern int min_caml_get_current_micros();
+extern int get_current_micros() asm ("min_caml_get_current_micros");
 extern void interp_debug(int, int, int);
+extern int rand_int(int);
 
 /* "stderr" is a macro and cannot be referred to in libmincaml.S, so */
 /*    this "min_caml_stderr" is used (in place of "__iob+32") for better */
@@ -14,10 +16,15 @@ extern void interp_debug(int, int, int);
 FILE *min_caml_stderr;
 FILE *min_caml_stdout;
 
-int min_caml_get_current_micros() {
+int get_current_micros() {
   struct timeval current_time;
   gettimeofday(&current_time, NULL);
   return current_time.tv_sec * (int)1e6 + current_time.tv_usec;
+}
+
+int rand_int(int n) {
+  srandom(get_current_micros());
+  return random() % n + 1;
 }
 
 void interp_debug(int pc, int instr, int sp) {
