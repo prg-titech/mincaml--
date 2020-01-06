@@ -132,18 +132,7 @@ and compile_exp fname env exp =
     @ [ Ldef l1 ]
     @ compile_t fname env else_exp
     @ [ Ldef l2 ]
-  | IfGE (x, y, e1, e2) ->
-    let l2, l1 = gen_label (), gen_label () in
-    compile_id_or_imm env (V x)
-    @ compile_id_or_imm (shift_env env) y
-    @ [ LT ]
-    @ [ NOT ]
-    @ [ JUMP_IF_ZERO; Lref l1 ]
-    @ compile_t fname env e1
-    @ [ JUMP; Lref l2 ]
-    @ [ Ldef l1 ]
-    @ compile_t fname env e2
-    @ [ Ldef l2 ]
+  | IfGE (x, y, e1, e2) -> compile_exp fname env (IfLE (x, y, e2, e1))
   | CallDir (Id.L "min_caml_print_int", [ x ], _) ->
     compile_id_or_imm env (V x) @ [ PRINT_INT ]
   | CallDir (Id.L "min_caml_print_newline", _, _) -> [ PRINT_NEWLINE ]
