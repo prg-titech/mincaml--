@@ -71,44 +71,6 @@ let index_of instr =
   |> snd
 ;;
 
-let index_of_main instrs =
-  match instrs with
-  | `Inst instrs ->
-    Array.to_list instrs
-    |> List.mapi (fun i x -> i, x)
-    |> List.rev
-    |> List.find (fun (i, x) -> x = METHOD_ENTRY)
-    |> fst
-  | `Int instrs ->
-    Array.to_list instrs
-    |> List.mapi (fun i x -> i, x)
-    |> List.rev
-    |> List.find (fun (i, x) -> x = index_of METHOD_ENTRY)
-    |> fst
-;;
-
-let%test "test index_of_main" =
-  let instrs =
-    [| METHOD_ENTRY
-     ; DUP0
-     ; DUP0
-     ; CONST0
-     ; ADD
-     ; ADD
-     ; RET
-     ; Literal 1
-     ; METHOD_ENTRY
-     ; RET
-     ; Literal 0
-     ; METHOD_ENTRY
-     ; CALL
-     ; Literal 1
-     ; HALT
-    |]
-  in
-  index_of_main (`Inst instrs) = 11
-;;
-
 module Printer = struct
   let pp_inst_map () =
     ignore
@@ -157,7 +119,6 @@ module Printer = struct
   ;;
 
   let rec pp_bytecode oc insts =
-    Printf.fprintf oc "main: %d\n" (index_of_main (`Inst insts));
     insts
     |> Array.mapi (fun i x -> i, x)
     |> Array.map (fun (i, instr) ->
@@ -170,7 +131,6 @@ module Printer = struct
   ;;
 
   let write_bytecode oc insts =
-    Printf.fprintf oc "%d\n" (index_of_main (`Inst insts));
     Printf.fprintf oc "%d\n" (Array.length insts);
     insts
     |> Array.map (fun instr ->

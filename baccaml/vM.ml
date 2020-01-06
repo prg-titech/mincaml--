@@ -328,25 +328,14 @@ let rec interp code pc stack =
     | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst)))
 ;;
 
-let create_dummy_stack () =
-  let open Value in
-  let stack = make_stack () in
-  let rec loop i = fun stk ->
-    if i = 0 then stk
-    else
-      loop (i-1) (push stk (value_of_int (-47)))
-  in
-  loop 2 stack
-;;
 (* run the given program by calling the function id 0 *)
 type fundef_bin_t = int array
 
 let run_bin : fundef_bin_t -> int =
-  fun fundefs ->
-  let main_idx = Insts.index_of_main (`Int fundefs) in
+ fun fundefs ->
   let open Value in
-  let stack = create_dummy_stack () in
-  int_of_value @@ interp fundefs main_idx stack
+  let stack = push (make_stack ()) (value_of_int (-987)) in
+  int_of_value @@ interp fundefs 0 stack
 ;;
 
 (* convert the given program into binary, and then run *)

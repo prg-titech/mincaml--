@@ -1,6 +1,5 @@
 (library
  (name BacCaml)
- (inline_tests)
  (public_name min-caml.bacCaml)
  (modules
   (:standard \ bytegen))
@@ -8,7 +7,7 @@
   (-w -4-33-40-41))
  (libraries str MinCaml)
  (preprocess
-  (pps ppx_deriving.show ppx_deriving.enum ppx_inline_test)))
+  (pps ppx_deriving.show ppx_deriving.enum)))
 
 (executable
  (name bytegen)

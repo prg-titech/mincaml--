@@ -50,21 +50,10 @@ let rec lexbuf oc l =
   |> Simm.f
   |> fun p ->
   match !backend_type with
-  | Virtual ->
-    p
-    |> Emit.f
-    |> (function `Result instrs -> Array.to_list instrs)
-    |> Insts.Printer.pp_insts
-  | PPBytecode ->
-    p
-    |> Emit.f
-    |> (function `Result instrs -> Insts.Printer.pp_bytecode oc instrs)
-  | Bytecode ->
-    p
-    |> Emit.f
-    |> (function `Result instrs -> Insts.Printer.write_bytecode oc instrs)
-  | Interp ->
-    p |> Emit.f |> (function `Result instrs -> VM.run_asm instrs) |> ignore
+  | Virtual -> p |> Emit.f |> Array.to_list |> Insts.Printer.pp_insts
+  | PPBytecode -> p |> Emit.f |> Insts.Printer.pp_bytecode oc
+  | Bytecode -> p |> Emit.f |> Insts.Printer.write_bytecode oc
+  | Interp -> p |> Emit.f |> VM.run_asm |> ignore
   | Nothing -> ()
 ;;
 
@@ -94,9 +83,9 @@ let () =
       ; ( "-virtual"
         , Arg.Unit (fun _ -> backend_type := Virtual)
         , "emit MinCaml IR" )
-      ; ( "-tail-opt"
+      ; ("-tail-opt"
         , Arg.Unit (fun _ -> Config.(tail_opt_flg := true))
-        , "enable optimization for tail-recursive call" )
+        , "enable optimization for tail-recursive call")
       ; ( "-insts"
         , Arg.Unit (fun _ -> show_insts_map_type := `True)
         , "show instruction map" )
