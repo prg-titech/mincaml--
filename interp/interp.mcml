@@ -1,7 +1,7 @@
 (* -*- mode: tuareg -*- *)
 (* vim: set syntax=ocaml: *)
 
-let rec is_mj _ = false in
+let rec is_mj _ = true in
 
 let rec frame_reset stack old_base new_base ret n i =
   if n = i then (stack.(old_base + n) <- ret; old_base + n + 1)
@@ -167,9 +167,8 @@ let rec read_code i n arr =
   else
     (arr.(i) <- read_int ();
      read_code (i+1) n arr) in
-let main_pc = read_int () in
 let n = read_int () in
 let arr = Array.make n 0 in
 let code = read_code 0 n arr in
-let _ = (interp stk 1 code main_pc) in
+let _ = (interp stk 1 code 0) in
 ()
