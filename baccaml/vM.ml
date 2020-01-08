@@ -4,7 +4,7 @@ open Config
 open Insts
 
 let max_stack_depth = 1000000
-let with_debug f = match !vm_debug_flg with `True -> f () | `False -> ()
+let with_debug f = match !vm_debug_flg with true -> f () | false -> ()
 
 let index_of element array =
   fst
@@ -111,11 +111,11 @@ let frame_reset : stack -> int -> int -> int -> stack =
     if n = i
     then (
       match !sh_flg with
-      | `True ->
+      | true ->
         stack.(old_base + n) <- jit_flg;
         stack.(old_base + (n + 1)) <- ret;
         old_base + n + 2, stack
-      | `False ->
+      | false ->
         stack.(old_base + n) <- ret;
         old_base + n + 1, stack)
     else (
@@ -240,10 +240,7 @@ let rec interp code pc stack =
       (* calling a function will create a new operand stack and lvars *)
       let addr, pc = fetch code pc in
       let _, pc = fetch code pc in
-      let stack =
-        Emit.(
-          match !sh_flg with `True -> push stack (Int' 100) | `False -> stack)
-      in
+      let stack = Emit.(if !sh_flg then push stack (Int' 100) else stack) in
       let stack = push stack (value_of_int pc) in
       (* save return address *)
       (* (let (sp,s)=stack in
@@ -260,9 +257,7 @@ let rec interp code pc stack =
       (* return value *)
       let pc, stack = pop stack in
       (* return address *)
-      let _, stack =
-        Emit.(match !sh_flg with `True -> pop stack | `False -> Int' 0, stack)
-      in
+      let _, stack = Emit.(if !sh_flg then pop stack else Int' 0, stack) in
       let stack = drop stack n in
       (* delete arguments *)
       let stack = push stack v in
@@ -320,7 +315,7 @@ let rec interp code pc stack =
       print_newline ();
       interp code pc stack
     | RAND_INT ->
-      let n,stack = pop stack in
+      let n, stack = pop stack in
       let v = Random.int (int_of_value n) in
       let stack = push stack (value_of_int v) in
       interp code pc stack

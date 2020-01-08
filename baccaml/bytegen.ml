@@ -8,32 +8,22 @@ type backend =
   | Interp
   | Nothing
 
-type show_insts_map =
-  [ `True
-  | `False
-  ]
-
-type debug =
-  [ `True
-  | `False
-  ]
-
 let backend_type = ref Bytecode
-let show_insts_map_type : show_insts_map ref = ref `False
-let debug_flg : debug ref = ref `False
+let show_insts_map_type = ref false
+let debug_flg = ref false
 
 let with_debug f =
   match !debug_flg with
-  | `True ->
-    B.Config.vm_debug_flg := `True;
+  | true ->
+    B.Config.vm_debug_flg := true;
     f ()
-  | `False -> f ()
+  | false -> f ()
 ;;
 
 let with_show_insts f =
   match !show_insts_map_type with
-  | `True -> B.Insts.Printer.pp_inst_map ()
-  | `False -> f ()
+  | true -> B.Insts.Printer.pp_inst_map ()
+  | false -> f ()
 ;;
 
 let rec lexbuf oc l =
@@ -76,9 +66,9 @@ let () =
   let files = ref [] in
   B.(
     Arg.parse
-      [ "-debug", Arg.Unit (fun _ -> debug_flg := `True), "run as debug mode"
+      [ "-debug", Arg.Unit (fun _ -> debug_flg := true), "run as debug mode"
       ; ( "-no-sh"
-        , Arg.Unit (fun _ -> Config.(sh_flg := `False))
+        , Arg.Unit (fun _ -> Config.(sh_flg := false))
         , "disable stack hybridization" )
       ; ( "-virtual"
         , Arg.Unit (fun _ -> backend_type := Virtual)
@@ -87,7 +77,7 @@ let () =
         , Arg.Unit (fun _ -> Config.(tail_opt_flg := true))
         , "enable optimization for tail-recursive call")
       ; ( "-insts"
-        , Arg.Unit (fun _ -> show_insts_map_type := `True)
+        , Arg.Unit (fun _ -> show_insts_map_type := true)
         , "show instruction map" )
       ; ( "-pp"
         , Arg.Unit (fun _ -> backend_type := PPBytecode)

@@ -33,8 +33,8 @@ let jit_flg_marker = "$jit_flg"
 
 let build_arg_env args =
   match !sh_flg with
-  | `True -> return_address_marker :: jit_flg_marker :: List.rev args
-  | `False -> return_address_marker :: List.rev args
+  | true -> return_address_marker :: jit_flg_marker :: List.rev args
+  | false -> return_address_marker :: List.rev args
 ;;
 
 (* computes the number of arguments to this frame. The stack has a shape like
@@ -72,7 +72,9 @@ let rec compile_t fname env =
   let open Asm in
   function
   | Ans (CallDir (Id.L fname', args, fargs) as e) ->
-    if fname' = fname && !tail_opt_flg
+    if not @@ !Config.tail_opt_flg
+    then compile_exp fname env e
+    else if fname' = fname && !tail_opt_flg
     then (
       let old_arity, local_size = arity_of_env env in
       let new_arity = List.length args in
@@ -151,6 +153,7 @@ and compile_exp fname env exp =
     |> fst
     |> List.rev
     |> List.flatten)
+    @ (if fname = "main" then [ JIT_SETUP ] else [])
     @ [ CALL; Lref var; Literal (List.length rands) ]
   | Ld (x, y, _) ->
     compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ GET ]
