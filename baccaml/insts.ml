@@ -26,6 +26,7 @@ type inst =
   | DUP0
   | METHOD_COMP
   | TRACING_COMP
+  | JIT_SETUP
   | RAND_INT
   | Literal of int
   | Lref of string
@@ -60,6 +61,7 @@ let insts =
    ; DUP0
    ; METHOD_COMP
    ; TRACING_COMP
+   ; JIT_SETUP
    ; RAND_INT
   |]
 ;;
