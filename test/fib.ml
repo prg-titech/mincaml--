@@ -1,4 +1,4 @@
-let rec fib n =
-  if n < 2 then n else
+let%tj rec fib n =
+  if n < 2 then 1 else
   fib (n - 1) + fib (n - 2) in
-print_int (fib 10)
+print_int (fib 25)
