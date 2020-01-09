@@ -2,6 +2,7 @@
 min-caml.install
 *.exe
 **/*.s
+*.data
 
 /asm.ml
 /asm.mli
