@@ -11,7 +11,7 @@ let%mj rec swap xs idx max =
       xs.(idx + 1) <- l;
       swap xs (idx + 1) max))
 in
-let%mj rec bubble_sort xs idx len =
+let rec bubble_sort xs idx len =
   if len - 1 < idx
   then xs
   else (
