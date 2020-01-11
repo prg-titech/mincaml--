@@ -319,7 +319,7 @@ let rec interp code pc stack =
       let v = Random.int (int_of_value n) in
       let stack = push stack (value_of_int v) in
       interp code pc stack
-    | METHOD_COMP | TRACING_COMP | METHOD_ENTRY -> interp code pc stack
+    | METHOD_COMP | TRACING_COMP | METHOD_ENTRY | JIT_SETUP -> interp code pc stack
     | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst)))
 ;;
 

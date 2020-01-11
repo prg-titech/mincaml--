@@ -86,13 +86,15 @@ let rec compile_t fname env =
       |> fst
       |> List.rev
       |> List.flatten)
-      @ [ FRAME_RESET
-        ; Literal old_arity
-        ; Literal local_size
-        ; Literal new_arity
-        ; JUMP
-        ; Lref fname
-        ])
+      @ (if !Config.frame_reset_flg
+        then
+          [ FRAME_RESET
+          ; Literal old_arity
+          ; Literal local_size
+          ; Literal new_arity
+          ]
+        else [])
+      @ [ JUMP; Lref fname ])
     else compile_exp fname env e
   | Ans e -> compile_exp fname env e
   | Let ((x, _), exp, t) ->
@@ -153,7 +155,7 @@ and compile_exp fname env exp =
     |> fst
     |> List.rev
     |> List.flatten)
-    @ (if fname = "main" then [ JIT_SETUP ] else [])
+    (* @ (if fname = "main" then [ JIT_SETUP ] else []) *)
     @ [ CALL; Lref var; Literal (List.length rands) ]
   | Ld (x, y, _) ->
     compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ GET ]
