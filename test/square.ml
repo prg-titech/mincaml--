@@ -1,4 +1,5 @@
-let%tj rec square i x acc =
-  if i < 1 then acc else
-    square (i-1) x (acc + x) in
-print_int (square 10 10 0)
+let rec square i x =
+  if i < 2 then x else
+    x + square (i-1) x
+in
+print_int (square 5000 5000)
