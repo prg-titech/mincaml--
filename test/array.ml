@@ -1,6 +1,12 @@
-let rec simple n m =
-  Array.make n m
+let rec ary i n xs ys =
+  if n < i
+  then ys
+  else (
+    ys.(i) <- xs.(i) + ys.(i);
+    ary (i + 1) n xs ys)
 in
-let arr = simple 2 3 in
-arr.(0) <- arr.(0) + 5;
-print_int (arr.(0) + arr.(1))
+let n = 5000 in
+let xs = Array.make n 1 in
+let ys = Array.make n 2 in
+let _ = ary 0 n xs ys in
+print_int ys.(1)
