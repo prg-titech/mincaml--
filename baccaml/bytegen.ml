@@ -76,7 +76,7 @@ let () =
       ; ( "-tail-opt"
         , Arg.Unit (fun _ -> Config.(tail_opt_flg := true))
         , "enable optimization for tail-recursive call" )
-      ; ( "-no-fm"
+      ; ( "-no-fr"
         , Arg.Unit (fun _ -> Config.frame_reset_flg := false)
         , "disable to emit frame_reset" )
       ; ( "-insts"
