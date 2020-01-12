@@ -67,6 +67,7 @@ let () =
   B.(
     Arg.parse
       [ "-debug", Arg.Unit (fun _ -> debug_flg := true), "run as debug mode"
+      ; ("-inline", Arg.Int (fun i -> MinCaml.Inline.threshold := i), "set a threshold for inlining")
       ; ( "-no-sh"
         , Arg.Unit (fun _ -> Config.(sh_flg := false))
         , "disable stack hybridization" )
