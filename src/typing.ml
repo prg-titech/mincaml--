@@ -184,6 +184,7 @@ let rec g env e =
             let domain, r = parse_type r in
             let range, r = parse_type r in
             Type.Fun ([ domain ], range), r
+          | _ -> failwith ("unknown pattern.")
         in
         let casted_type, r = parse_type typespec in
         let env = M.add x t env in
