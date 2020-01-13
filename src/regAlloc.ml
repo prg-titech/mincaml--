@@ -192,6 +192,7 @@ and g' dest cont regenv = function
   | Sub (x, y') -> Ans (Sub (find x Type.Int regenv, find' y' regenv)), regenv
   | Mul (x, y') -> Ans (Mul (find x Type.Int regenv, find' y' regenv)), regenv
   | Div (x, y') -> Ans (Div (find x Type.Int regenv, find' y' regenv)), regenv
+  | Mod (x, y') -> Ans (Div (find x Type.Int regenv, find' y' regenv)), regenv
   | Ld (x, y', i) ->
     Ans (Ld (find x Type.Int regenv, find' y' regenv, i)), regenv
   | St (x, y, z', i) ->
