@@ -31,6 +31,7 @@
 %token IF
 %token THEN
 %token ELSE
+%token MOD
 %token <Id.t> IDENT
 %token LET
 %token IN
@@ -58,7 +59,7 @@
 %nonassoc prec_tuple
 %left COMMA
 %left EQUAL LESS_GREATER LESS GREATER LESS_EQUAL GREATER_EQUAL
-%left PLUS MINUS PLUS_DOT MINUS_DOT
+%left PLUS MINUS PLUS_DOT MINUS_DOT MOD
 %left AST_DOT SLASH_DOT
 %right prec_unary_minus
 %left prec_app
@@ -107,6 +108,8 @@ exp: /* (* ∞Ï»Ã§Œº∞ (caml2html: parser_exp) *) */
     { Not(Eq($1, $3)) }
 | exp AST exp
     { Mul($1, $3)}
+| exp MOD exp
+    { Mod ($1, $3) }
 | exp SLASH exp
     { Div($1, $3) }
 | exp LESS exp

@@ -5,9 +5,12 @@
 #include <sys/time.h>
 
 extern void min_caml_start(char *, char *);
-extern int get_current_micros() asm ("min_caml_get_current_micros");
 extern void interp_debug(int, int, int);
-extern int rand_int(int);
+
+void interp_debug(int pc, int instr, int sp) {
+  fprintf(stderr, "pc: %d, instr: %d, sp: %d\n", pc, instr, sp);
+  return;
+}
 
 /* "stderr" is a macro and cannot be referred to in libmincaml.S, so */
 /*    this "min_caml_stderr" is used (in place of "__iob+32") for better */
@@ -15,22 +18,6 @@ extern int rand_int(int);
 /*    Shaw for reporting the problem and proposing this solution. */
 FILE *min_caml_stderr;
 FILE *min_caml_stdout;
-
-int get_current_micros() {
-  struct timeval current_time;
-  gettimeofday(&current_time, NULL);
-  return current_time.tv_sec * (int)1e6 + current_time.tv_usec;
-}
-
-int rand_int(int n) {
-  srandom(get_current_micros());
-  return random() % n + 1;
-}
-
-void interp_debug(int pc, int instr, int sp) {
-  fprintf(stderr, "pc: %d, instr: %d, sp: %d\n", pc, instr, sp);
-  return;
-}
 
 int main(int argc, char *argv[]) {
   char *hp, *sp;

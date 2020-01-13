@@ -14,6 +14,7 @@ let rec g env = function
   | Sub (x, y) -> Sub (find x env, find y env)
   | Mul (x, y) -> Mul (find x env, find y env)
   | Div (x, y) -> Div (find x env, find y env)
+  | Mod (x, y) -> Mod (find x env, find y env)
   | FNeg x -> FNeg (find x env)
   | FAdd (x, y) -> FAdd (find x env, find y env)
   | FSub (x, y) -> FSub (find x env, find y env)

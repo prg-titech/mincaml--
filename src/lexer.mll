@@ -66,6 +66,8 @@ rule token = parse
     { THEN }
 | "else"
     { ELSE }
+| "mod"
+    { MOD }
 | "let"
     { LET }
 | "in"

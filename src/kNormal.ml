@@ -10,6 +10,7 @@ type t =
   | Sub of Id.t * Id.t
   | Mul of Id.t * Id.t
   | Div of Id.t * Id.t
+  | Mod of Id.t * Id.t
   | FNeg of Id.t
   | FAdd of Id.t * Id.t
   | FSub of Id.t * Id.t
@@ -45,6 +46,7 @@ let rec fv = function
   | Sub (x, y)
   | Mul (x, y)
   | Div (x, y)
+  | Mod (x, y)
   | FAdd (x, y)
   | FSub (x, y)
   | FMul (x, y)
@@ -96,6 +98,9 @@ let rec g env = function
   | Syntax.Div (e1, e2) ->
     insert_let (g env e1) (fun x ->
         insert_let (g env e2) (fun y -> Div (x, y), Type.Int))
+  | Syntax.Mod (e1, e2) ->
+    insert_let (g env e1) (fun x ->
+        insert_let (g env e2) (fun y -> Mod (x, y), Type.Int))
   | Syntax.FNeg e -> insert_let (g env e) (fun x -> FNeg x, Type.Float)
   | Syntax.FAdd (e1, e2) ->
     insert_let (g env e1) (fun x ->

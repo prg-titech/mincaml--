@@ -259,6 +259,28 @@ min_caml_rand_int:
 	movl	%ebp, %esp
 	popl	%ebp
 	ret
+.globl min_caml_modulo
+min_caml_modulo:
+	pushl	%ebp
+	movl	%esp, %ebp
+	ALIGNSTACK2
+	pushl	%ebx
+	pushl	%eax
+	call	modulo
+	movl	%ebp, %esp
+	popl	%ebp
+	ret
+.globl min_caml_divide
+min_caml_divide:
+	pushl	%ebp
+	movl	%esp, %ebp
+	ALIGNSTACK2
+	pushl	%ebx
+	pushl	%eax
+	call	divide
+	movl	%ebp, %esp
+	popl	%ebp
+	ret
 .data
 format_int:
 	.asciz	"%d"
