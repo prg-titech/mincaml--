@@ -8,13 +8,13 @@ let byte_flg = ref false
 let s = sprintf
 let cmd = Sys.command
 let with_error_code f = if f () = 0 then () else raise Exit
-let emit_x86 f = cmd @@ s "dune exec min-caml -- %s" f
+let emit_x86 f = cmd @@ s "dune exec min-caml -- -inline 0 %s" f
 let emit_bytecode f = cmd @@ s "dune exec bac-caml -- %s" f
 
 let compile_with_gcc f =
   cmd
   @@ s
-       "gcc -m32 -g -O2 -Wall src/stub.c src/libmincaml.S %s -lm -o %s"
+       "gcc -m32 -g -O2 -Wall src/stub.c src/lib.c src/libmincaml.S %s -lm -o %s"
        (f ^ ".s")
        (f ^ ".exe")
 ;;

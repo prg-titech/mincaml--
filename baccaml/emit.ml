@@ -114,6 +114,10 @@ and compile_exp fname env exp =
     compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ SUB ]
   | Mul (x, y) ->
     compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ MUL ]
+  | Div (x, y) ->
+    compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ DIV ]
+  | Mod (x, y) ->
+    compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ MOD ]
   | IfEq (x, y, then_exp, else_exp) ->
     let l2, l1 = gen_label (), gen_label () in
     compile_id_or_imm env (V x)
@@ -155,7 +159,7 @@ and compile_exp fname env exp =
     |> fst
     |> List.rev
     |> List.flatten)
-    (* @ (if fname = "main" then [ JIT_SETUP ] else []) *)
+    @ (if fname = "main" then [ JIT_SETUP ] else [])
     @ [ CALL; Lref var; Literal (List.length rands) ]
   | Ld (x, y, _) ->
     compile_id_or_imm env (V x) @ compile_id_or_imm (shift_env env) y @ [ GET ]

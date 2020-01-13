@@ -89,8 +89,13 @@ let () =
       ; ( "-interp"
         , Arg.Unit (fun _ -> backend_type := Interp)
         , "run as interpreter" )
+      ; ( "-interp-hs"
+        , Arg.Unit (fun _ ->
+              Config.stack_mode_flg := `Host_stack;
+              backend_type := Interp)
+        , "running an interpreter using host-stack " )
       ])
     (fun s -> files := !files @ [ s ])
-    "usage: %s [-virtual] [-insts] [-bytes] [-interp]";
+    (Sys.argv.(0) ^ " [-options] filename.ml");
   with_show_insts (fun _ -> with_debug (fun _ -> List.iter main !files))
 ;;

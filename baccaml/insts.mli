@@ -28,6 +28,8 @@ type inst =
   | TRACING_COMP
   | JIT_SETUP
   | RAND_INT
+  | DIV
+  | MOD
   | Literal of int
   | Lref of string
   | Ldef of string

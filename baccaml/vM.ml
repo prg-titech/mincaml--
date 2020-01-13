@@ -240,30 +240,40 @@ let rec interp code pc stack =
       (* calling a function will create a new operand stack and lvars *)
       let addr, pc = fetch code pc in
       let _, pc = fetch code pc in
-      let stack = Emit.(if !sh_flg then push stack (Int' 100) else stack) in
-      let stack = push stack (value_of_int pc) in
-      (* save return address *)
-      (* (let (sp,s)=stack in
-       *  if 2<sp then
-       *    (Printf.printf "%d CALL %d [%d %d ...]\n" (pc-2) addr
-       *       (s.(sp-2)) (s.(sp-3)))
-       *  else ())
-       * ; *)
-      interp code addr stack
+      (match !stack_mode_flg with
+      | `User_stack ->
+        let stack = Emit.(if !sh_flg then push stack (Int' 200) else stack) in
+        let stack = push stack (value_of_int pc) in
+        (* save return address *)
+        (* (let (sp,s)=stack in
+         *  if 2<sp then
+         *    (Printf.printf "%d CALL %d [%d %d ...]\n" (pc-2) addr
+         *       (s.(sp-2)) (s.(sp-3)))
+         *  else ())
+         * ; *)
+        interp code addr stack
+      | `Host_stack ->
+        let stack = Emit.(if !sh_flg then push stack (Int' 100) else stack) in
+        let v = interp code addr stack in
+        let stack = push stack v in
+        interp code pc stack)
     | RET (* n *) ->
       (* let pc0 = pc-1 in *)
       let n, pc = fetch code pc in
       let v, stack = pop stack in
-      (* return value *)
-      let pc, stack = pop stack in
-      (* return address *)
       let _, stack = Emit.(if !sh_flg then pop stack else Int' 0, stack) in
-      let stack = drop stack n in
-      (* delete arguments *)
-      let stack = push stack v in
-      (* restore return value *)
-      (* Printf.printf "%d RET with %d to %d\n" pc0 v pc; *)
-      interp code (int_of_value pc) stack
+      (match !stack_mode_flg with
+      | `User_stack ->
+        (* return value *)
+        let pc, stack = pop stack in
+        (* return address *)
+        let stack = drop stack n in
+        (* delete arguments *)
+        let stack = push stack v in
+        (* restore return value *)
+        (* Printf.printf "%d RET with %d to %d\n" pc0 v pc; *)
+        interp code (int_of_value pc) stack
+      | `Host_stack -> v)
     | DUP ->
       let n, pc = fetch code pc in
       let stack = push stack (take stack n) in
@@ -319,7 +329,8 @@ let rec interp code pc stack =
       let v = Random.int (int_of_value n) in
       let stack = push stack (value_of_int v) in
       interp code pc stack
-    | METHOD_COMP | TRACING_COMP | METHOD_ENTRY | JIT_SETUP -> interp code pc stack
+    | METHOD_COMP | TRACING_COMP | METHOD_ENTRY | JIT_SETUP ->
+      interp code pc stack
     | _ -> failwith (sprintf "un matched pattern: %s" (show_inst inst)))
 ;;
 
