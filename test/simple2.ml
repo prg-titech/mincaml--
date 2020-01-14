@@ -4,4 +4,4 @@ let%mj rec fib n =
 let%tj rec sum i n =
   if i < 0 then n else
     sum (i-1) (n + (fib i)) in
-print_int (sum 20 0)
+print_int (sum 30 0)
