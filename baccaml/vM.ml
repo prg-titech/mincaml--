@@ -56,6 +56,18 @@ module Value = struct
     | _ -> failwith "invalid value"
   ;;
 
+  let ( |/| ) v1 v2 =
+    match v1, v2 with
+    | Int' i, Int' j -> Int' (i / j)
+    | _ -> failwith "invalid value"
+  ;;
+
+  let ( |%| ) v1 v2 =
+    match v1, v2 with
+    | Int' i, Int' j -> Int' (i mod j)
+    | _ -> failwith "invalid_arg"
+  ;;
+
   let ( |<| ) v1 v2 =
     match v1, v2 with Int' i, Int' j -> i < j | _ -> failwith "invalid value"
   ;;
@@ -211,6 +223,16 @@ let rec interp code pc stack =
       let v2, stack = pop stack in
       let v1, stack = pop stack in
       let stack = push stack (v1 |*| v2) in
+      interp code pc stack
+    | MOD ->
+      let v2, stack = pop stack in
+      let v1, stack = pop stack in
+      let stack = push stack (v1 |%| v2) in
+      interp code pc stack
+    | DIV ->
+      let v2, stack = pop stack in
+      let v1, stack = pop stack in
+      let stack = push stack (v1 |/| v2) in
       interp code pc stack
     | LT ->
       let v2, stack = pop stack in

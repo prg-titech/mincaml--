@@ -31,6 +31,7 @@ type inst =
   | DIV
   | MOD
   | GT
+  | READ_INT
   | Literal of int
   | Lref of string
   | Ldef of string
@@ -69,6 +70,7 @@ let insts =
    ; DIV
    ; MOD
    ; GT
+   ; READ_INT
   |]
 ;;
 
