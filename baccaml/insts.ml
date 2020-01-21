@@ -61,8 +61,8 @@ let insts =
    ; METHOD_ENTRY
    ; CONST0
    ; DUP0
-   ; METHOD_COMP
-   ; TRACING_COMP
+   ; METHOD_COMP                (* -1024 *)
+   ; TRACING_COMP               (* -1048 *)
    ; JIT_SETUP
    ; RAND_INT
    ; DIV
@@ -71,10 +71,14 @@ let insts =
 ;;
 
 let index_of instr =
-  Array.to_list insts
-  |> List.mapi (fun i instr -> instr, i)
-  |> List.find (fun (instr', i) -> instr = instr')
-  |> snd
+  match instr with
+  | TRACING_COMP -> -1048
+  | METHOD_COMP -> -1024
+  | _ ->
+    Array.to_list insts
+    |> List.mapi (fun i instr -> instr, i)
+    |> List.find (fun (instr', i) -> instr = instr')
+    |> snd
 ;;
 
 module Printer = struct
