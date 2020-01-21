@@ -1,0 +1,23 @@
+let rec loop1 flags k i =
+  if k < 4000 then
+    (flags.(k) <- (-1);
+     loop1 flags (k+i) i)
+  else flags in
+let rec sieve flags i =
+  if i < 4000 then
+    if flags.(i) = 1 then
+      let _ = loop1 flags (i+1) i in
+      sieve flags (i+1)
+    else
+      sieve flags (i+1)
+  else
+    flags in
+let rec loop i =
+  if i = 0 then () else
+    let flags = Array.make 4000 1 in
+    let s = get_current_micros () in
+    let _ = sieve flags 2 in
+    let e = get_current_micros () in
+    print_int (e - s); print_newline ();
+    loop (i-1)
+in loop 100
