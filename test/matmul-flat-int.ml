@@ -1,4 +1,4 @@
-let rec loop3 i k j a b c =
+let%tj rec loop3 i k j a b c =
   if k < 0 then 1 else (
     let x = a.(i).(k) * b.(k).(j) in
     c.(i).(j) <- c.(i).(j) + x;
