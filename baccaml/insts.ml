@@ -30,6 +30,7 @@ type inst =
   | RAND_INT
   | DIV
   | MOD
+  | GT
   | Literal of int
   | Lref of string
   | Ldef of string
@@ -67,6 +68,7 @@ let insts =
    ; RAND_INT
    ; DIV
    ; MOD
+   ; GT
   |]
 ;;
 
