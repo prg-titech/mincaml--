@@ -6,7 +6,7 @@ let rec quick_sort xs len =
   in
   let rec go left right =
     if right <= left
-    then ()
+    then 0
     else (
       let l = left + right in
       let pivot = xs.(l / 2) in
@@ -28,10 +28,10 @@ let rec quick_sort xs len =
           partition (l + 1) (r - 1))
       in
       let (l, r) = partition left right in
-      go left (l - 1);
+      let _ = go left (l - 1) in
       go (r + 1) right)
   in
-  go 0 (len - 1);
+  let _ = go 0 (len - 1) in
   xs
 in
 let a = Array.make 5 0 in
