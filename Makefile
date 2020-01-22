@@ -1,23 +1,15 @@
 CC := gcc
-CFLAGS := -g -O2 -Wall
+CFLAGS := -m32 -g -O2 -Wall
 LDFLAGS := -lm -no-pie
+
+MINCAML := dune exec min-caml
 
 PWD = $(shell pwd)
 LIBS_X64 = ./external/x64
 EXTERNAL_LIBS = -L$(LIBS_X64)/bdwgc/.libs -lgc
 
-TESTS = print sum-tail gcd sum fib ack even-odd \
-adder funcomp cls-rec cls-bug cls-bug2 cls-reg-bug \
-shuffle spill spill2 spill3 join-stack join-stack2 join-stack3 \
-join-reg join-reg2 non-tail-if non-tail-if2 \
-inprod inprod-rec inprod-loop matmul matmul-flat \
-
-TRASH = \
-	$(TESTS:%=test/%.s) \
-	$(TESTS:%=test/%) \
-	$(TESTS:%=test/%.res) \
-	$(TESTS:%=test/%.ans) \
-	$(TESTS:%=test/%.cmp)
+TESTS = $(basename $(wildcard test/*.ml))
+TRASH = $(TESTS:%=%.s) $(TESTS:%=%.exe) $(TESTS:%=%.res)
 
 default:
 	dune build
@@ -32,19 +24,21 @@ reinstall: uninstall reinstall
 
 clean:
 	dune clean
+
+cleantest:
 	$(RM) $(TRASH)
 
-do_test: $(TESTS:%=test/%.cmp)
+dotest: $(TESTS:%=%.res)
+
+gentest: $(TESTS:%=%.exe)
 
 test/%.s: test/%.ml
-	dune exec min-caml test/$*
-test/%: test/%.s libmincaml.S stub.c
-	$(CC) $(CFLAGS) $(EXTERNAL_LIBS) $^ -o $@ $(LDFLAGS)
-test/%.res: test/%
-	$< > $@
-test/%.ans: test/%.ml
-	ocaml $< > $@
-test/%.cmp: test/%.res test/%.ans
-	diff $^ > $@
+	$(MINCAML) test/$*.ml
 
-.PHONY: default install uninstall reinstall clean do_test
+test/%.exe: test/%.s src/libmincaml.S src/lib.c src/stub.c
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+test/%.res: test/%.exe
+	$< > $@
+
+.PHONY: default install uninstall reinstall clean cleantest dotest gentest
