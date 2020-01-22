@@ -6,6 +6,10 @@ module List = ListLabels
 
 exception Error of string
 
+let get_prefix s =
+  String.split_on_char '.' s |> List.hd
+;;
+
 (* generate a unique label id *)
 let gen_label, reset =
   let counter = ref 0 in
@@ -74,7 +78,7 @@ let rec compile_t fname env =
   | Ans (CallDir (Id.L fname', args, fargs) as e) ->
     if not @@ !Config.tail_opt_flg
     then compile_exp fname env e
-    else if fname' = fname && !tail_opt_flg
+    else if fname' = fname && !tail_opt_flg && not (List.mem (get_prefix fname) !Config.tail_ignore_list)
     then (
       let old_arity, local_size = arity_of_env env in
       let new_arity = List.length args in
