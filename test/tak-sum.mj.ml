@@ -1,4 +1,4 @@
-let%tj rec sum i n =
+let%mj rec sum i n =
   if i <= 0 then n else
     sum (i - 1) (n + i) in
 let%mj rec tak x y z =

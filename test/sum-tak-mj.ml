@@ -3,7 +3,7 @@ let%mj rec tak x y z =
   tak (tak (x-1) y z) (tak (y-1) z x) (tak (z-1) x y)
 in
 let%mj rec sum i =
-  if i = 0 then 0 else
-    let x = tak 13 8 6 in
+  let x = tak 13 8 6 in
+  if i <= 0 then x else
     x + sum (i-1) in
-print_int (sum 20)
+print_int (sum 51)
