@@ -4,6 +4,7 @@ type backend =
   | MinCaml
   | Wasm
   | Virtual
+  | Closure
 
 let backend_type = ref MinCaml
 let debug = ref false
@@ -18,19 +19,22 @@ let ast oc l =
 let lexbuf oc l =
   Id.counter := 0;
   Typing.extenv := M.empty;
-  Parser.exp Lexer.token l
-  |> Typing.f
-  |> KNormal.f
-  |> Alpha.f
-  |> Util.(iter !limit)
-  |> Closure.f
-  |> Virtual.f
+  let closure =
+    Parser.exp Lexer.token l
+    |> Typing.f
+    |> KNormal.f
+    |> Alpha.f
+    |> Util.(iter !limit)
+    |> Closure.f
+  in
+  Virtual.f closure
   |> Simm.f
   |> fun p ->
   match !backend_type with
   | Wasm -> Wasm.Emit.f oc p
   | MinCaml -> RegAlloc.f p |> X86.Emit.f oc
   | Virtual -> Asm.show_prog p |> Printf.fprintf oc "%s"
+  | Closure -> Closure.show_prog closure |> Printf.fprintf oc "%s"
 ;;
 
 let string s = lexbuf stdout (Lexing.from_string s)
@@ -70,6 +74,9 @@ let () =
       , Arg.Int (fun i -> Util.limit := i)
       , "maximum number of optimizations iterated" )
     ; "-ast", Arg.Unit (fun _ -> ast_dump := true), "emit abstract syntax tree"
+    ; ( "-closure"
+      , Arg.Unit (fun _ -> backend_type := Closure)
+      , "emit closure-transformed knormal form" )
     ; ( "-virtual"
       , Arg.Unit (fun _ -> backend_type := Virtual)
       , "emit virtual machine code" )

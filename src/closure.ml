@@ -2,6 +2,7 @@ type closure =
   { entry : Id.l
   ; actual_fv : Id.t list
   }
+[@@deriving show]
 
 type t =
   (* クロージャ変換後の式 (caml2html: closure_t) *)
@@ -31,6 +32,7 @@ type t =
   | Get of Id.t * Id.t
   | Put of Id.t * Id.t * Id.t
   | ExtArray of Id.l
+[@@deriving show]
 
 type fundef =
   { name : Id.l * Type.t
@@ -39,8 +41,10 @@ type fundef =
   ; body : t
   ; mutable annot : [ `TJ | `MJ ] option
   }
+[@@deriving show]
 
 type prog = Prog of fundef list * t
+[@@deriving show]
 
 let rec fv = function
   | Unit | Int _ | Float _ | ExtArray _ -> S.empty

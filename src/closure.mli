@@ -41,5 +41,10 @@ type fundef =
 
 type prog = Prog of fundef list * t
 
+val show_closure : closure -> string
+val show : t -> string
+val show_fundef : fundef -> string
+val show_prog : prog -> string
+
 val fv : t -> S.t
 val f : KNormal.t -> prog
