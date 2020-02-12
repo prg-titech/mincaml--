@@ -6,4 +6,4 @@ let%tj rec sum i =
   let x = (tak 13 8 6) in
   if i <= 0 then x else
     x + sum (i - 1) in
-print_int (sum 50)
+print_int (sum 20)
