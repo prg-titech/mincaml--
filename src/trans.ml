@@ -12,3 +12,8 @@ and clsr_of_virt' = function
   | A.Set (i) -> C.Int (i)
   | A.SetL (l) -> C.Unit
   | A.Mov (v) -> C.Var (v)
+  | A.Add (x, A.V y) -> C.Add (x, y)
+  | A.Sub (x, A.V y) -> C.Sub (x, y)
+  | A.Div (x, A.V y) -> C.Div (x, y)
+  | A.Mod (x, A.V y) -> C.Mod (x, y)
+  | A.Mul (x, A.V y) -> C.Mul (x, y)
