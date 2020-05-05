@@ -1,3 +1,0 @@
-[submodule "external/x64/bdwgc"]
-	path = external/x64/bdwgc
-	url = git@github.com:ivmai/bdwgc.git
