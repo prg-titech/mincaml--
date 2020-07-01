@@ -9,10 +9,10 @@
  *)
 
 let rec tak x y z =
-  if x < y + 1 then y else
-  tak (tak (x-1) y z) (tak(y-1) z x) (tak(z-1) x y)
+  if x <= y then z else
+    tak (tak (x-1) y z) (tak(y-1) z x) (tak(z-1) x y)
 in
 let s = get_current_micros () in
-let _ = tak 14 6 4 in
+let _ = tak 14 8 3 in
 let e = get_current_micros () in
 print_int (e - s); print_newline ()
