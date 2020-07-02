@@ -13,14 +13,10 @@ let rec loop max i ran =
     ran.(0) <- new_last;
     loop max (i-1) ran
 in
-let rec loop2 i =
-  if i < 1 then () else
-    let n = 1000 in
-    let max = 100.0 in
-    let ran = Array.make 42 2.0 in
-    let s = get_current_micros () in
-    let _ = (loop max n ran) in
-    let e = get_current_micros () in
-    print_int (e - s); print_newline ();
-    loop2 (i-1)
-in loop2 100
+let n = 1000 in
+let max = 100.0 in
+let ran = Array.make 42 2.0 in
+let s = get_current_micros () in
+let _ = (loop max n ran) in
+let e = get_current_micros () in
+print_int (e - s); print_newline ()
