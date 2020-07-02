@@ -8,7 +8,7 @@ let byte_flg = ref false
 let s = sprintf
 let cmd = Sys.command
 let with_error_code f = if f () = 0 then () else raise Exit
-let emit_x86 f = cmd @@ s "dune exec min-caml -- -inline 0 %s" f
+let emit_x86 f = cmd @@ s "/usr/local/bin/min-caml -inline 0 %s" f
 let emit_bytecode f = cmd @@ s "dune exec bac-caml -- %s" f
 
 let compile_with_gcc f =
@@ -30,7 +30,7 @@ let () =
   let name, ext = F.chop_extension !file, F.extension !file in
   if not (!byte_flg)
   then (
-    with_error_code (fun () -> emit_x86 !file);
+    with_error_code (fun () -> emit_x86 name);
     with_error_code (fun () -> compile_with_gcc name))
   else (
     match ext with
