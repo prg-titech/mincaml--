@@ -13,7 +13,7 @@ let rec loop max i ran =
     ran.(0) <- new_last;
     loop max (i-1) ran
 in
-let n = 1000 in
+let n = 900 in
 let max = 100 in
 let ran = Array.make 42 2 in
 let _ = (loop max n ran) in

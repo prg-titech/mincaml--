@@ -12,8 +12,8 @@ let rec sieve flags i =
       sieve flags (i+1)
   else
     flags in
-let flags = Array.make 8196 1 in
 let s = get_current_micros () in
+let flags = Array.make 8196 1 in
 let _ = sieve flags 2 in
 let e = get_current_micros () in
 print_int (e - s); print_newline ()

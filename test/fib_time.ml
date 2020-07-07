@@ -4,4 +4,4 @@ let rec fib n =
 let s = get_current_micros () in
 let _ = fib 20 in
 let e = get_current_micros () in
-print_int (e - s)
+print_int (e - s); print_newline ()

@@ -4,4 +4,4 @@ let%tj rec sum n acc =
 let%mj rec fib n =
   if n <= 2  then sum 100 0 else
     fib (n-1) + fib (n-2) in
-print_int (fib 20)
+print_int (fib 10)
