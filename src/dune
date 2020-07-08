@@ -14,7 +14,7 @@
  (libraries str)
  (preprocess
   (pps ppx_deriving.show))
- (c_names float))
+ (foreign_stubs (language c) (names float)))
 
 ; (executable
 ;  (name main)
