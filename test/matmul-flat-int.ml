@@ -1,21 +1,21 @@
 let%tj rec loop3 i k j a b c =
-  if k < 0 then 1 else (
+  if k <= 0 then 1 else (
     let x = a.(i).(k) * b.(k).(j) in
     c.(i).(j) <- c.(i).(j) + x;
    loop3 i (k - 1) j a b c) in
 let rec loop2 i m j a b c =
-  if j < 0 then 1 else
+  if j <= 0 then 1 else
   (let _ = loop3 i (m - 1) j a b c in
    loop2 i m (j - 1) a b c) in
 let rec loop1 i m n a b c =
-  if i < 0 then 0 else
+  if i <= 0 then 0 else
   (let _ = loop2 i m (n - 1) a b c in
    loop1 (i - 1) m n a b c) in
 let rec mul l m n a b c =
   loop1 (l - 1) m n a b c in
 let dummy = Array.make 0 0 in
 let rec init i n mat =
-  if i < 0 then 1 else (
+  if i <= 0 then 1 else (
     mat.(i) <- Array.make n 0;
     init (i - 1) n mat) in
 let rec make m n dummy =

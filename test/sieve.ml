@@ -1,9 +1,9 @@
-let%tj rec loop1 flags k i =
+let%mj rec loop1 flags k i =
   if k <= 8192 then
     (flags.(k) <- (-1);
      loop1 flags (k+i) i)
   else flags in
-let%tj rec sieve flags i =
+let rec sieve flags i =
   if i <= 8192 then
     if flags.(i) > (-1) then
       let flags = loop1 flags (i+i) i in

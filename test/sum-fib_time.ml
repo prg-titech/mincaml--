@@ -8,7 +8,7 @@ let rec sum i n =
 let rec loop i =
   if i < 0 then () else
     let s = get_current_micros () in
-    let r = sum 100 0 in
+    let r = sum 1000 0 in
     let e = get_current_micros () in
     print_int r; print_newline ();
     print_int (e-s); print_newline ();
