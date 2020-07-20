@@ -15,4 +15,5 @@
  (flags
   (-w -4-33-40-41))
  (modules Bytegen)
+ (package bac-caml)
  (libraries MinCaml BacCaml))
