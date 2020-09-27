@@ -16,11 +16,11 @@
   (pps ppx_deriving.show))
  (foreign_stubs (language c) (names float)))
 
-(executable
- (name main)
- (public_name min-caml)
- (flags
-  (-w -4-33-40-41))
- (modules Main)
- (package min-caml)
- (libraries MinCaml BacCaml x86 x64 wasm))
+; (executable
+;  (name main)
+;  (public_name min-caml)
+;  (flags
+;   (-w -4-33-40-41))
+;  (modules Main)
+;  (package min-caml)
+;  (libraries MinCaml BacCaml x86 x64 wasm))
