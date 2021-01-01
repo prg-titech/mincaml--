@@ -11,7 +11,7 @@
 
 (executable
  (name bytegen)
- (public_name bac-caml)
+ (public_name mcmm)
  (flags
   (-w -4-33-40-41))
  (modules Bytegen)
