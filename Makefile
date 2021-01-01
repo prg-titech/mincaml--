@@ -12,7 +12,7 @@ TESTS = $(basename $(wildcard test/*.ml))
 TRASH = $(TESTS:%=%.s) $(TESTS:%=%.exe) $(TESTS:%=%.res)
 
 default:
-	dune build
+	dune build @install
 
 install:
 	dune install $(INSTALL_ARGS)
